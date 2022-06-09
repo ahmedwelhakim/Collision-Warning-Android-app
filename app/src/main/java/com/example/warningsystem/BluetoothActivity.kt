@@ -5,22 +5,26 @@ import android.annotation.SuppressLint
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
+import android.preference.PreferenceManager
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.BaseAdapter
-import android.widget.ListView
-import android.widget.TextView
-import android.widget.Toast
+import android.widget.*
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.AppCompatButton
 import com.example.bluetooth.Bluetooth
+import java.util.prefs.Preferences
 import kotlin.math.max
 
 
-class BluetoothActivity : AppCompatActivity() {
+@RequiresApi(Build.VERSION_CODES.S)
+class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
+    View.OnClickListener {
     private lateinit var scanButton: AppCompatButton
     private lateinit var lvBtDev: ListView
     private lateinit var lvList: ArrayList<ArrayList<String>>
@@ -31,94 +35,118 @@ class BluetoothActivity : AppCompatActivity() {
     private lateinit var intentToNextActivity: Intent
     private lateinit var bluetooth: Bluetooth
     private var lvAdapter: LvAdapter? = null
+    private lateinit var mPrefs: SharedPreferences
+    private lateinit var mEditor: SharedPreferences.Editor
+
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        bluetooth = Bluetooth(this@BluetoothActivity)
+        bluetooth = Bluetooth.getBluetoothInstance(1, this@BluetoothActivity)!!
         bluetooth.bluetoothEnable()
-
         lvBtDev = findViewById<View>(R.id.lvDevices) as ListView
         lvBtDev.divider = null
         lvBtDev.dividerHeight = 0
-
         lvList = ArrayList(ArrayList())
         lvAdapter = LvAdapter(applicationContext, lvList)
-
-        scanButton = findViewById<AppCompatButton>(R.id.scan_bt)
-
+        scanButton = findViewById(R.id.scan_bt)
+        scanButton.setOnClickListener(this)
         messageBytes = ByteArray(Bluetooth.MAX_RCV_BUFFER_LENGTH)
         emptyTv = findViewById<View>(R.id.empty_textview) as TextView
         lvBtDev.emptyView = emptyTv
         lvBtDev.adapter = lvAdapter
-        lvBtDev.setOnItemClickListener { _, _, position, _ ->
-            if (bluetooth.isEnabled()) {
-                bluetooth.stopSearching(applicationContext)
-                val o: Any = lvBtDev.getItemAtPosition(position)
-                var data = o.toString()
-                data = data.replace("\\[".toRegex(), "").replace("\\]".toRegex(), "").toString()
-                val dataSplited = data.split(", ", ignoreCase = true, limit = 2)
-                val btName = dataSplited[0]
-                val btAddress = dataSplited[1]
-                val t = BlueToothConnectThread(
-                    btAddress,
-                    messageBytes,
-                    messageLen
-                )
-                t.start()
-            } else {
-                bluetooth.bluetoothEnable()
+        lvBtDev.onItemClickListener = this
+
+        mPrefs = PreferenceManager.getDefaultSharedPreferences(this)
+        mEditor = mPrefs.edit()
+
+        val name = mPrefs.getString("name", null)
+        val address = mPrefs.getString("address", null)
+
+        if (name != null && address != null) {
+            lvList.add(ArrayList())
+            lvList[max(lvList.size - 1,0)].add(name)
+            lvList[max(lvList.size - 1,0)].add(address)
+            lvAdapter!!.notifyDataSetChanged()
+        }
+    }
+
+    override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
+        when (parent?.id) {
+            R.id.lvDevices -> {
+                if (bluetooth.isEnabled()) {
+                    bluetooth.stopSearching(applicationContext)
+                    val o: Any = lvBtDev.getItemAtPosition(position)
+                    var data = o.toString()
+                    data = data.replace("\\[".toRegex(), "").replace("]".toRegex(), "")
+                    val dataSplited = data.split(", ", ignoreCase = true, limit = 2)
+                    val btName = dataSplited[0]
+                    val btAddress = dataSplited[1]
+                    mEditor.putString("name", btName).commit()
+                    mEditor.putString("address", btAddress).commit()
+                    val t = BlueToothConnectThread(btAddress)
+                    t.start()
+                    Toast.makeText(
+                        applicationContext,
+                        "Trying to connect to $btName",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    Toast.makeText(
+                        applicationContext,
+                        "Please Enable Bluetooth!!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                    bluetooth.bluetoothEnable()
+                }
             }
         }
 
-        scanButton.setOnClickListener { _ ->
-            lvList.removeAll(lvList.toSet())
-            if (bluetooth.isEnabled()) {
-                scanButton.isEnabled = false
-                bluetooth.stopSearching(applicationContext)
-                bluetooth.startSearching(
-                    receiver, arrayOf(
-                        Bluetooth.ACTION_FOUND,
-                        Bluetooth.ACTION_DISCOVERY_FINISHED,
-                        Bluetooth.ACTION_ACL_DISCONNECTED
+    }
+
+    override fun onClick(v: View?) {
+        when (v?.id) {
+            R.id.scan_bt -> {
+                lvList.removeAll(lvList.toSet())
+                if (bluetooth.isEnabled()) {
+                    scanButton.isEnabled = false
+                    bluetooth.stopSearching(applicationContext)
+                    bluetooth.startSearching(
+                        receiver, arrayOf(
+                            Bluetooth.ACTION_FOUND,
+                            Bluetooth.ACTION_DISCOVERY_FINISHED,
+                            Bluetooth.ACTION_ACL_DISCONNECTED
+                        )
                     )
-                )
-                Toast.makeText(
-                    applicationContext,
-                    "    Searching   .  .  .  ",
-                    Toast.LENGTH_SHORT
-                ).show()
-            } else {
-                bluetooth.bluetoothEnable()
-                Toast.makeText(
-                    applicationContext,
-                    "Please Enable your Bluetooth!!",
-                    Toast.LENGTH_SHORT
-                ).show()
+                    Toast.makeText(
+                        applicationContext,
+                        "    Searching   .  .  .  ",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                } else {
+                    bluetooth.bluetoothEnable()
+                    Toast.makeText(
+                        applicationContext,
+                        "Please Enable your Bluetooth!!",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
             }
         }
     }
 
     inner class BlueToothConnectThread(
         btAddress: String,
-        messageBytes: ByteArray?,
-        messageLen: Int
     ) :
         Thread() {
         private val btAddress: String
-        private val messageLen: Int
 
         init {
             this.btAddress = btAddress
-            this.messageLen = messageLen
         }
 
         override fun run() {
-            val status: Boolean = bluetooth.connectToThisDeviceToSendReceive(
-                btAddress,
-                messageBytes,
-                messageLen
-            )
+            val status: Boolean = bluetooth.connectToThisDevice(btAddress)
             if (!status) {
                 runOnUiThread(Runnable {
                     Toast.makeText(
@@ -242,4 +270,6 @@ class BluetoothActivity : AppCompatActivity() {
             return vi
         }
     }
+
+
 }
