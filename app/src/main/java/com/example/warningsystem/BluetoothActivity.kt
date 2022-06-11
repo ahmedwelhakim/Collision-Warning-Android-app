@@ -37,11 +37,12 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     private var lvAdapter: LvAdapter? = null
     private lateinit var mPrefs: SharedPreferences
     private lateinit var mEditor: SharedPreferences.Editor
-
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
+
+
         bluetooth = Bluetooth.getBluetoothInstance(1, this@BluetoothActivity)!!
         bluetooth.bluetoothEnable()
         lvBtDev = findViewById<View>(R.id.lvDevices) as ListView
@@ -65,10 +66,11 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
 
         if (name != null && address != null) {
             lvList.add(ArrayList())
-            lvList[max(lvList.size - 1,0)].add(name)
-            lvList[max(lvList.size - 1,0)].add(address)
+            lvList[max(lvList.size - 1, 0)].add(name)
+            lvList[max(lvList.size - 1, 0)].add(address)
             lvAdapter!!.notifyDataSetChanged()
         }
+
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -131,6 +133,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
                         Toast.LENGTH_SHORT
                     ).show()
                 }
+                lvAdapter!!.notifyDataSetChanged()
             }
         }
     }
@@ -270,6 +273,6 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
             return vi
         }
     }
-
-
 }
+
+

@@ -7,25 +7,41 @@ import android.os.Build
 import android.util.AttributeSet
 import android.util.DisplayMetrics
 import android.util.Log
-import android.view.SurfaceHolder
-import android.view.SurfaceView
-import android.view.Window
-import android.view.WindowManager
-import android.view.WindowMetrics
+import android.view.*
 import androidx.annotation.RequiresApi
 import androidx.core.content.getSystemService
+import android.view.View.AUTOFILL_FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
+import com.example.bluetooth.Bluetooth
+import org.json.JSONException
+import org.json.JSONObject
+import kotlin.concurrent.thread
+import kotlin.properties.Delegates
 
 @RequiresApi(Build.VERSION_CODES.S)
 class CanvasView : SurfaceView {
-    constructor(context: Context) : super (context)
-    constructor(context: Context,attrs:AttributeSet) : super(context,attrs)
-    constructor(context: Context,attrs: AttributeSet,defStyle: Int) : super(context,attrs,defStyle)
+    constructor(context: Context) : super(context)
+    constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
+    constructor(context: Context, attrs: AttributeSet, defStyle: Int) : super(
+        context,
+        attrs,
+        defStyle
+    )
 
+    companion object {
+        private var instance: CanvasView? = null
+        fun getViewInstance(): CanvasView? {
+            return instance
+        }
+        val bluetoothHashMap: HashMap<String, String> = HashMap()
+    }
 
-    private val loopThread: CanvasThread = CanvasThread(this)
+    private lateinit var loopThread: CanvasThread
     private var x = 0
-    init {
+    private var viewWidth by Delegates.notNull<Int>()
+    private var viewHeight by Delegates.notNull<Int>()
 
+
+    init {
         this.setBackgroundColor(Color.TRANSPARENT)
         this.setZOrderOnTop(true)
         holder.setFormat(PixelFormat.TRANSPARENT)
@@ -44,15 +60,62 @@ class CanvasView : SurfaceView {
             }
 
             override fun surfaceCreated(holder: SurfaceHolder) {
+
+                val display = (context.getSystemService(Context.WINDOW_SERVICE)) as WindowManager
+                val screenHeight = display.defaultDisplay.height
+                val screenWidth = display.defaultDisplay.width
+                val param = layoutParams
+                viewWidth = screenWidth
+                viewHeight = screenHeight - y.toInt()
+                param.height = viewHeight
+                layoutParams = param
+                Log.d(
+                    "CanvasView",
+                    "canvas view: viewHeight = $viewHeight,viewWidth = $viewWidth"
+                )
+                setBackgroundColor(Color.TRANSPARENT)
+                loopThread = CanvasThread(this@CanvasView, screenWidth, viewHeight)
                 loopThread.setRunning(true)
                 loopThread.start()
-                val display = (context.getSystemService(Context.WINDOW_SERVICE))as WindowManager
-                val screenHeight = display.defaultDisplay.height
-                val param = layoutParams
-                param.height = screenHeight - y.toInt()
-                layoutParams = param
-                setBackgroundColor( Color.TRANSPARENT)
-            }
+
+                bluetoothHashMap["speed"] = "0"
+                bluetoothHashMap["ttc"] = "100"
+                thread {
+
+                    var tmp: Pair<ByteArray, Boolean>?
+                    var jsonResponse: JSONObject
+                    var iteratorObj: Iterator<String>
+                    var keyName: String
+                    var valueName: String
+                    var stringJson: String
+                    val bluetooth = Bluetooth.getBluetoothInstanceWithoutContext(1)
+                    while (true){
+                        tmp = bluetooth?.read()
+                        if (tmp?.first != null && tmp.second) {
+                            stringJson = String(tmp.first)
+                            jsonResponse = try {
+                                JSONObject(String(tmp.first))
+                            } catch (ex: JSONException) {
+                                CanvasThread.isDataReceived = false
+                                JSONObject("{}")
+                            }
+
+                            iteratorObj = jsonResponse.keys()
+                            if(iteratorObj.hasNext()){
+                                CanvasThread.isDataReceived = true
+                            }
+
+                            while (iteratorObj.hasNext()) {
+                                keyName = iteratorObj.next()
+                                valueName = jsonResponse.getString(keyName)
+                                bluetoothHashMap[keyName] = valueName
+                                 }
+                            }
+                        }
+                    }
+                }
+
+
 
             override fun surfaceChanged(
                 holder: SurfaceHolder, format: Int,
@@ -60,7 +123,11 @@ class CanvasView : SurfaceView {
             ) {
             }
         })
+
+
+
     }
+
 
     public override fun onDraw(canvas: Canvas) {
 

@@ -223,7 +223,7 @@ class Bluetooth private constructor(activity: Activity) {
         // given BluetoothDevice
         try {
             Log.d(
-                TAG, "ConnectThread: Trying to create InsecureRfcommSocket using UUID: "
+                TAG, "getSocket: Trying to create InsecureRfcommSocket using UUID: "
                         + MY_UUID_INSECURE
             )
 
@@ -243,34 +243,39 @@ class Bluetooth private constructor(activity: Activity) {
         } catch (e: Exception) {
             Log.e(
                 TAG,
-                "ConnectThread: Could not create InsecureRfcommSocket ${e.message} "
+                "getSocket: Could not create InsecureRfcommSocket ${e.message} "
             )
             isSucceed = false
             isRunning = false
         }
         mSocket = tmp
-        // Make a connection to the BluetoothSocket
-        try {
-            // This is a blocking call and will only return on a
-            // successful connection or an exception
-            Log.d(TAG, "ConnectThread: Try mSocket Connected")
-            mSocket!!.connect()
-            Log.d(TAG, "ConnectThread: mSocket Connected")
-
-        } catch (e: IOException) {
-            isSucceed = false
-            isRunning = false
-            // Close the socket
+        if(mSocket == null){
+            Log.d(TAG, "getSocket: mSocket is null!!!")
+        }else {
+            // Make a connection to the BluetoothSocket
             try {
-                mSocket?.close()
-                Log.e(TAG, "run: Closed Socket.")
-            } catch (e1: IOException) {
-                Log.e(
-                    TAG,
-                    "mConnectThread: run: Unable to close connection in socket " + e1.message
-                )
+                // This is a blocking call and will only return on a
+                // successful connection or an exception
+                Log.d(TAG, "getSocket: Try mSocket Connect")
+                mSocket!!.connect()
+                Log.d(TAG, "getSocket: mSocket Connected")
+
+            } catch (e: IOException) {
+                isSucceed = false
+                isRunning = false
+                Log.e(TAG, "getSocket Exception: ${e.message}")
+                // Close the socket
+                try {
+                    mSocket?.close()
+                    Log.e(TAG, "getSocket: Closed Socket.")
+                } catch (e1: IOException) {
+                    Log.e(
+                        TAG,
+                        "getSocket: Unable to close connection in socket " + e1.message
+                    )
+                }
+                Log.e(TAG, "getSocket: Could not connect to UUID: $MY_UUID_INSECURE")
             }
-            Log.e(TAG, "run: ConnectThread: Could not connect to UUID: $MY_UUID_INSECURE")
         }
         return isSucceed
     }
@@ -279,12 +284,15 @@ class Bluetooth private constructor(activity: Activity) {
         address: String
     ): Boolean {
         var status = false
+        var socketStatus = false
+        var streamStatus = false
         try {
             mDevice = bluetoothAdapter?.getRemoteDevice(address)
-            status = getSocket()
-            status = getInputOutputStream() && status
+            socketStatus = getSocket()
+            streamStatus = getInputOutputStream()
+            status = socketStatus && streamStatus
             isRunning = status
-            Log.d(TAG, "status = $status")
+            Log.d(TAG, "connectToThisDevice: socket status = $socketStatus stream status = $streamStatus")
         } catch (ex: Exception) {
             status = false
             isRunning = false

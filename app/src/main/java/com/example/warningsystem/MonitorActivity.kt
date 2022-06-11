@@ -18,7 +18,7 @@ class MonitorActivity : AppCompatActivity() {
         fun getInstance(): Activity? = activityInstance
     }
 
-    lateinit var tv_test: TextView
+
 
     @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingInflatedId")
