@@ -2,20 +2,17 @@ package com.example.warningsystem
 
 import android.content.Context
 import android.graphics.*
-import android.graphics.drawable.Drawable
 import android.os.Build
 import android.util.AttributeSet
-import android.util.DisplayMetrics
 import android.util.Log
 import android.view.*
 import androidx.annotation.RequiresApi
-import androidx.core.content.getSystemService
-import android.view.View.AUTOFILL_FLAG_INCLUDE_NOT_IMPORTANT_VIEWS
 import com.example.bluetooth.Bluetooth
 import org.json.JSONException
 import org.json.JSONObject
 import kotlin.concurrent.thread
 import kotlin.properties.Delegates
+
 
 @RequiresApi(Build.VERSION_CODES.S)
 class CanvasView : SurfaceView {
@@ -32,6 +29,8 @@ class CanvasView : SurfaceView {
         fun getViewInstance(): CanvasView? {
             return instance
         }
+
+        var isDebugging = false
         val bluetoothHashMap: HashMap<String, String> = HashMap()
     }
 
@@ -59,6 +58,7 @@ class CanvasView : SurfaceView {
                 }
             }
 
+
             override fun surfaceCreated(holder: SurfaceHolder) {
 
                 val display = (context.getSystemService(Context.WINDOW_SERVICE)) as WindowManager
@@ -80,6 +80,7 @@ class CanvasView : SurfaceView {
 
                 bluetoothHashMap["speed"] = "0"
                 bluetoothHashMap["ttc"] = "100"
+
                 thread {
 
                     var tmp: Pair<ByteArray, Boolean>?
@@ -89,7 +90,9 @@ class CanvasView : SurfaceView {
                     var valueName: String
                     var stringJson: String
                     val bluetooth = Bluetooth.getBluetoothInstanceWithoutContext(1)
-                    while (true){
+                    var count = 0f
+                    var ttc = 10f
+                    while (true) {
                         tmp = bluetooth?.read()
                         if (tmp?.first != null && tmp.second) {
                             stringJson = String(tmp.first)
@@ -101,7 +104,7 @@ class CanvasView : SurfaceView {
                             }
 
                             iteratorObj = jsonResponse.keys()
-                            if(iteratorObj.hasNext()){
+                            if (iteratorObj.hasNext()) {
                                 CanvasThread.isDataReceived = true
                             }
 
@@ -109,12 +112,12 @@ class CanvasView : SurfaceView {
                                 keyName = iteratorObj.next()
                                 valueName = jsonResponse.getString(keyName)
                                 bluetoothHashMap[keyName] = valueName
-                                 }
                             }
                         }
+
                     }
                 }
-
+            }
 
 
             override fun surfaceChanged(
@@ -125,10 +128,23 @@ class CanvasView : SurfaceView {
         })
 
 
-
     }
+/////////////----------------------------------------for Debugging Purpose-------------------------
+    private val runnable = Runnable {isDebugging = isDebugging.not() }
+    override fun onTouchEvent(event: MotionEvent): Boolean {
 
-
+        when (event.action) {
+            MotionEvent.ACTION_DOWN -> {
+                handler.postDelayed(runnable, 3000)
+                invalidate()
+            }
+            MotionEvent.ACTION_UP -> {
+                handler.removeCallbacks(runnable)
+            }
+        }
+        return true
+    }
+    /////////////----------------------------------------for Debugging Purpose----------------------
     public override fun onDraw(canvas: Canvas) {
 
     }
