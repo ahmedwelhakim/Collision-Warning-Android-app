@@ -5,15 +5,8 @@ import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
 import android.os.Build
-import android.os.SystemClock
-import android.util.Log
 import androidx.annotation.RequiresApi
-import com.example.bluetooth.Bluetooth
-import com.example.warningsystem.CanvasView.Companion.bluetoothHashMap
-import org.json.JSONArray
-import org.json.JSONException
-import org.json.JSONObject
-import kotlin.concurrent.thread
+import com.example.warningsystem.CanvasView.Companion.BluetoothHashMapReceive
 
 
 @RequiresApi(Build.VERSION_CODES.S)
@@ -71,7 +64,6 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
             var c: Canvas? = null
             try {
-
                 if (isDataReceived) {
                     c = view.holder.lockCanvas()
 
@@ -82,17 +74,20 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                         if (!(CanvasView.isDebugging)) {
 
                             isDataReceived = false
-                            drawingSpeed1.textValue = bluetoothHashMap["speed"].toString()
+                            drawingSpeed1.textValue = BluetoothHashMapReceive.getMapValue("speed")
                             drawingSpeed1.draw(c)
 
-                            drawingTTC.textValue = bluetoothHashMap["ttc"].toString()
+                            drawingTTC.textValue = BluetoothHashMapReceive.getMapValue("ttc")
                             drawingTTC.draw(c)
 
                             imageDrawing.speed =
-                                if (bluetoothHashMap["speed"]?.contains("[0-9]".toRegex()) == true) (bluetoothHashMap["speed"])?.toFloat()
-                                    ?.toInt()!! else -1
+                                if (drawingSpeed1.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
+                                    "speed"
+                                ).toFloat()) else -1f
                             imageDrawing.ttc =
-                                if (bluetoothHashMap["ttc"]?.contains("[0-9]".toRegex()) == true) (bluetoothHashMap["ttc"])?.toFloat()!! else -1f
+                                if (drawingTTC.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
+                                    "ttc"
+                                ).toFloat()) else -1f
                             imageDrawing.draw(c)
                         } else {
                             // -------------------------------------------------------------------------
@@ -125,12 +120,15 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
         c.drawText("Debugging mode: . . . ", x, y + 50, paint)
         paintBg.color = Color.parseColor("#30000000")
         c.drawRect(x, y, (x + blockWidth), y + (bottom - top), paintBg)
-        x+=50
-        y+=100
-        for (i in bluetoothHashMap.toSortedMap()) {
+        x += 50
+        y += 100
+        for (i in BluetoothHashMapReceive.toSortedMap()) {
             c.drawText("${i.key} = ${i.value}", x, y + 50, paint)
             y += paint.textSize * 1.5f
-
+        }
+        for(i in MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap()){
+            c.drawText("${i.key} = ${i.value}", x, y + 50, paint)
+            y += paint.textSize * 1.5f
         }
     }
 }

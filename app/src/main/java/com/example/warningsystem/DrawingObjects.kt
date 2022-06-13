@@ -376,7 +376,7 @@ class ImageDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canva
     private var mDarkBitmap: Bitmap
     private val mWidth: Int = 450
     private val mHeight: Int = 350
-    var speed: Int = 0
+    var speed: Float = 0f
     var ttc: Float = 10f
     val maxSpeed = 20
     val maxTTC = 10
@@ -509,7 +509,7 @@ fun convertToBlack (bitmap: Bitmap?, width: Int, height: Int) {
 
         // black pixels
         if (alpha>0) {
-            pixel = Color.parseColor("#01000000")
+            pixel = Color.parseColor("#03000000")
         }
 
         allPixels[i] = pixel

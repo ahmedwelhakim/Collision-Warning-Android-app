@@ -8,8 +8,11 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
 import android.preference.PreferenceManager
+import android.text.Layout
 import android.view.LayoutInflater
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
@@ -17,14 +20,17 @@ import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.AppCompatButton
+import androidx.constraintlayout.widget.ConstraintLayout
+import androidx.core.os.HandlerCompat.postDelayed
 import com.example.bluetooth.Bluetooth
+import java.util.Objects
 import java.util.prefs.Preferences
 import kotlin.math.max
 
 
 @RequiresApi(Build.VERSION_CODES.S)
 class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
-    View.OnClickListener {
+    View.OnClickListener,View.OnTouchListener {
     private lateinit var scanButton: AppCompatButton
     private lateinit var lvBtDev: ListView
     private lateinit var lvList: ArrayList<ArrayList<String>>
@@ -37,6 +43,10 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     private var lvAdapter: LvAdapter? = null
     private lateinit var mPrefs: SharedPreferences
     private lateinit var mEditor: SharedPreferences.Editor
+    private lateinit var mMainView:ConstraintLayout
+    companion object{
+        var isDemo = false
+    }
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
@@ -71,6 +81,8 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
             lvAdapter!!.notifyDataSetChanged()
         }
 
+        mMainView=findViewById(R.id.main_view)
+        mMainView.setOnTouchListener(this@BluetoothActivity)
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -273,6 +285,23 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
             return vi
         }
     }
+
+
+    private val runnable = Runnable {isDemo = isDemo.not() ; startActivity(Intent(this.applicationContext,MonitorActivity::class.java))}
+    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+        if (event != null) {
+            when (event.action) {
+                MotionEvent.ACTION_DOWN -> {
+                    v?.postDelayed(runnable, 3000)
+                }
+                MotionEvent.ACTION_UP -> {
+                    v?.handler?.removeCallbacks(runnable)
+                }
+            }
+        }
+        return true
+    }
+
 }
 
 
