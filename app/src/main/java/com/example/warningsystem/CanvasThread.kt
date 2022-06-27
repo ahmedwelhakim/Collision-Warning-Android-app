@@ -71,7 +71,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
 
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-                        if (!(CanvasView.isDebugging)) {
+                        if (!(CanvasView.isDebugging) && c!=null) {
 
                             isDataReceived = false
                             var speed = 0f

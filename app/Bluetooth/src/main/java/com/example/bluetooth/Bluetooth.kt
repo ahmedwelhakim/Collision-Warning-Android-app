@@ -25,7 +25,7 @@ val MY_UUID_INSECURE: UUID =
     UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
 const val TAG = "Bluetooth"
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 class Bluetooth private constructor(activity: Activity) {
     private var bluetoothAdapter: BluetoothAdapter?
     private var mDevice: BluetoothDevice? = null
@@ -384,7 +384,7 @@ class Bluetooth private constructor(activity: Activity) {
 
 }
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 private class AcceptThread(activity: Activity, bluetoothAdapter: BluetoothAdapter?) : Thread() {
     // The local server socket
     private val mmServerSocket: BluetoothServerSocket?

@@ -12,11 +12,9 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.bluetooth.Bluetooth
@@ -28,7 +26,7 @@ import kotlinx.coroutines.runBlocking
 import org.json.JSONObject
 
 
-class MonitorActivity : AppCompatActivity(),SensorEventListener {
+class MonitorActivity : AppCompatActivity(){
 
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
@@ -36,8 +34,7 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
     private lateinit var locationListener: LocationListener
     private lateinit var locationManager: LocationManager
     private lateinit var bluetooth:Bluetooth
-    private lateinit var mSensorManager: SensorManager
-
+    private lateinit var compass:Compass
 
 
     companion object {
@@ -46,8 +43,8 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
         fun getInstance(): Activity? = activityInstance
         const val LOCATION_PERMISSION_REQ_CODE =  355
 
-        private const val MAX_TIME_INTERVAL = 50
-        private const val MIN_TIME_INTERVAL = 10
+        const val MAX_TIME_INTERVAL = 50
+        const val MIN_TIME_INTERVAL = 10
 
         private val bluetoothHashMapSend: HashMap<String, String> = HashMap()
         class BluetoothHashMapSend {
@@ -77,12 +74,13 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
     }
 
     private val requestingLocationUpdates = true
-    @RequiresApi(Build.VERSION_CODES.S)
     @SuppressLint("MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_monitor)
         activityInstance = this
+
+
         bluetooth = Bluetooth.getBluetoothInstance(1, this@MonitorActivity)!!
         val jsonOutput:JSONObject
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
@@ -94,8 +92,7 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
         locationRequest.interval = MAX_TIME_INTERVAL.toLong()
         locationRequest.fastestInterval = MIN_TIME_INTERVAL.toLong()
         locationRequest.priority = Priority.PRIORITY_HIGH_ACCURACY
-
-        mSensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
+        compass = Compass(this)
 
 
         if (ActivityCompat.checkSelfPermission(
@@ -118,20 +115,24 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
 
         fusedLocationClient.lastLocation
             .addOnSuccessListener { location : Location? ->
-                val lon:Double = location?.longitude!!
-                val lat:Double = location.latitude
-                val speed:Float = location.speed
-                val heading:Float = location.bearing
-                data class JsonDataParser(
-                    @SerializedName("mLon") val id: Double,
-                    @SerializedName("mLat") val name: Double,
-                    @SerializedName("mSpeed") val image: Float,
-                    @SerializedName("mHeading") val description: Float
-                )
-               val gson = Gson()
-                val json = gson.toJson(JsonDataParser(lon,lat,speed,heading))
-                Log.d("Location",json)
-                bluetooth.send(json.toByteArray())
+                if(location != null) {
+                    val lon: Double = location.longitude
+                    val lat: Double = location.latitude
+                    val speed: Float = location.speed
+                    val heading: Float = location.bearing
+
+                    data class JsonDataParser(
+                        @SerializedName("mLon") val id: Double,
+                        @SerializedName("mLat") val name: Double,
+                        @SerializedName("mSpeed") val image: Float,
+                        @SerializedName("mHeading") val description: Float
+                    )
+
+                    val gson = Gson()
+                    val json = gson.toJson(JsonDataParser(lon, lat, speed, heading))
+                    Log.d("Location", json)
+                    bluetooth.send(json.toByteArray())
+                }
             }
 
         locationCallback = object : LocationCallback() {
@@ -184,34 +185,19 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
 
         super.onResume()
         if (requestingLocationUpdates) startLocationUpdates()
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_ORIENTATION), MIN_TIME_INTERVAL*1000,
-            MAX_TIME_INTERVAL*1000)
+        compass.startListener()
     }
     override fun onPause() {
         super.onPause()
         stopLocationUpdates()
-        mSensorManager.unregisterListener(this)
+        compass.stopListener()
     }
 
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
-    override fun onSensorChanged(event: SensorEvent?) {
-        BluetoothHashMapSend.putMapValue("mHeading",event!!.values[0].toString())
-        BluetoothHashMapSend.putMapValue("mHeadingAccuracy", event.accuracy.toString())
 
-        val gsonMapBuilder =GsonBuilder()
-        val gsonObject = gsonMapBuilder.create()
-        val jsonString =gsonObject.toJson(BluetoothHashMapSend.toSortedMap())
-        bluetooth.send(jsonString.toByteArray())
-
-    }
-
-    override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-       // TODO("Not yet implemented")
-    }
 
 }
 
