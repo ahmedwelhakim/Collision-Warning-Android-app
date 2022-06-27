@@ -74,7 +74,13 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                         if (!(CanvasView.isDebugging)) {
 
                             isDataReceived = false
-                            drawingSpeed1.textValue = BluetoothHashMapReceive.getMapValue("speed")
+                            var speed = 0f
+                            if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
+                               speed =
+                                    MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
+                                        .toFloat() * 3.6f // to Kmph
+                            }
+                            drawingSpeed1.textValue = speed.toString()
                             drawingSpeed1.draw(c)
 
                             drawingTTC.textValue = BluetoothHashMapReceive.getMapValue("ttc")

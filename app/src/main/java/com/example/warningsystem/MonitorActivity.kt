@@ -65,6 +65,9 @@ class MonitorActivity : AppCompatActivity(),SensorEventListener {
                 fun toSortedMap() = runBlocking {
                     return@runBlocking bluetoothHashMapSend.toSortedMap()
                 }
+                fun containsKey(k:String):Boolean = runBlocking {
+                    return@runBlocking bluetoothHashMapSend.containsKey(k)
+                }
 
             }
 

@@ -1,13 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="DesignSurface">
-    <option name="filePathToDrawableBackgroundType">
-      <map>
-        <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/drawable/button_enabled.xml" value="NONE" />
-      </map>
-    </option>
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="../../../../layout/custom_preview.xml" value="0.19844124700239807" />
         <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.1865" />
         <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/drawable/button.xml" value="0.1865" />
         <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/drawable/button_enabled.xml" value="0.209" />

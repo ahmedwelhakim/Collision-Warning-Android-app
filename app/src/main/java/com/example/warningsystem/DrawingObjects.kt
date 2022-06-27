@@ -267,7 +267,7 @@ class TTCDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canvasH
     private var linePaint: Paint
     private var shadowPaint: Paint
     private val lineWidth = 550f
-    private var maxTTC = 10F
+    private var maxTTC = 1F
     private var halfTTC = maxTTC / 2F
     private var r: Float = 0f
     private var g: Float = 0f
@@ -335,18 +335,30 @@ class TTCDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canvasH
 
 
         //c?.drawText(df.format(ttc) + " s", valueX, valueY, textValuePaint)
-        maxTTC = 10F
+        maxTTC = 1F
         halfTTC = maxTTC / 2F
 
-        if (ttc > maxTTC / 2f) {
+      /*  if (ttc > maxTTC / 2f) {
             r = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
             g = min((ttc / maxTTC) * 2f * GREEN, GREEN.toFloat())
         } else {
             g = min((ttc / maxTTC) * 2.5f * GREEN, GREEN.toFloat())
             r = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
         }
+*/
 
-        lineStopX = max(lineStartX + (1 - ttc / maxTTC) * lineWidth,lineStartX)
+        if (ttc <= halfTTC) {
+            r = min(
+                ((RED * ((ttc / (halfTTC).toDouble()).pow(0.7)))).toFloat(),
+                RED.toFloat()
+            )
+            g = GREEN.toFloat()
+        } else {
+            g = ((GREEN.toFloat() * ((1F - ((ttc - halfTTC) / halfTTC)))).toFloat())
+            r = RED.toFloat()
+        }
+
+        lineStopX = max(lineStartX + (ttc / maxTTC) * lineWidth,lineStartX)
         linePaint.color = myRgb(r, g, 0f)
 
         c?.drawLine(lineStartX, lineStartY, lineStopX, lineStopY, strokePaint)
@@ -377,9 +389,9 @@ class ImageDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canva
     private val mWidth: Int = 450
     private val mHeight: Int = 350
     var speed: Float = 0f
-    var ttc: Float = 10f
+    var ttc: Float = 0f
     val maxSpeed = 20
-    val maxTTC = 10
+    val maxTTC = 1f
     var bmWidthOffset =260
     var bmHeightOffset =200
     init {
@@ -430,13 +442,16 @@ class ImageDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canva
                 sGreen = (GREEN * ((1F - ((speed - (maxSpeed / 2f)) / (maxSpeed / 2f)))))
                 sRed = RED.toFloat()
             }
-
-            if (ttc > maxTTC / 2f) {
-                tRed = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
-                tGreen = min((ttc / maxTTC) * 2f * GREEN, GREEN.toFloat())
+            val halfTTC = maxTTC/2.0f
+            if (ttc <= halfTTC) {
+                tRed = min(
+                    ((RED * ((ttc / (halfTTC).toDouble()).pow(0.7)))).toFloat(),
+                    RED.toFloat()
+                )
+                tGreen = GREEN.toFloat()
             } else {
-                tGreen = min((ttc / maxTTC) * 2.5f * GREEN, GREEN.toFloat())
-                tRed = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
+                tGreen = ((GREEN.toFloat() * ((1F - ((ttc - halfTTC) / halfTTC)))).toFloat())
+                tRed = RED.toFloat()
             }
 
 
