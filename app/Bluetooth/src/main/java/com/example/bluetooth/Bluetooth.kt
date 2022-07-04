@@ -300,20 +300,34 @@ class Bluetooth private constructor(activity: Activity) {
         }
         return status
     }
+    private inner class SendThread(var data: ByteArray): Thread(){
 
-    fun send(data: ByteArray): Boolean {
-        if (mOutputStream != null) {
-            val text = String(data, Charset.defaultCharset())
-            Log.d(TAG, "write: Writing to outputStream: $text")
-            try {
-                mOutputStream!!.write(data)
-                return true
-            } catch (e: IOException) {
-                Log.e(TAG, "write: Error writing to output stream. " + e.message)
-                isRunning = false
+        public override fun run() {
+            if (mOutputStream != null) {
+                val text = String(data, Charset.defaultCharset())
+                Log.d(TAG, "write: Writing to outputStream: $text")
+                try {
+                    mOutputStream!!.write(data)
+                } catch (e: IOException) {
+                    Log.e(TAG, "write: Error writing to output stream. " + e.message)
+                    isRunning = false
+                }
             }
         }
-        return false
+    }
+    private lateinit var sendThread:SendThread
+    fun send(data: ByteArray) {
+       if (this::sendThread.isInitialized){
+           if(sendThread.isAlive){
+               // we won't send the data till the send thread finish
+           } else {
+               sendThread = SendThread(data)
+               sendThread.start()
+           }
+       }else{
+           sendThread = SendThread(data)
+           sendThread.start()
+       }
     }
 
     fun read(): Pair<ByteArray,Boolean> {

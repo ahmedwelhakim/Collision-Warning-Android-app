@@ -78,7 +78,7 @@ class CanvasView : SurfaceView {
                         loopThread.join()
                         retry = false
                     } catch (e: InterruptedException) {
-                        TODO()
+                       // TODO()
                     }
                 }
             }
@@ -104,10 +104,11 @@ class CanvasView : SurfaceView {
                 loopThread.start()
 
                 BluetoothHashMapReceive.putMapValue("speed","0")
-                BluetoothHashMapReceive.putMapValue("ttc","0")
+                BluetoothHashMapReceive.putMapValue("ttc","100")
 
                 var speed = 0f
-                var ttc = 0f
+                val maxTTC=10f
+                var ttc = maxTTC
 
                 thread {
                     if (!BluetoothActivity.isDemo) {
@@ -119,7 +120,8 @@ class CanvasView : SurfaceView {
                         var stringJson: String
                         val bluetooth = Bluetooth.getBluetoothInstanceWithoutContext(1)
                         var count = 0f
-                        var ttc = 10f
+
+                        var ttc = maxTTC
                         while (true) {
                             tmp = bluetooth?.read()
                             if (tmp?.first != null && tmp.second) {
@@ -135,7 +137,7 @@ class CanvasView : SurfaceView {
                                 if (iteratorObj.hasNext()) {
                                     CanvasThread.isDataReceived = true
                                 }
-
+                                // write the data in the Global BluetoothHashMapReceive
                                 while (iteratorObj.hasNext()) {
                                     keyName = iteratorObj.next()
                                     valueName = jsonResponse.getString(keyName)
@@ -145,18 +147,19 @@ class CanvasView : SurfaceView {
 
                         }
                     } else {
-                        while (true) {
-                            if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
+                        while (BluetoothActivity.isDemo) {
+                            /*if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
                                 speed =
                                     MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
                                         .toFloat() * 3.6f // to Kmph
-                            }else speed = 0f
+                            }else speed = 0f*/
+                            speed+=0.5f
                             BluetoothHashMapReceive.putMapValue("speed",speed.toString())
                             BluetoothHashMapReceive.putMapValue("ttc",ttc.toString())
-
-                            ttc += 0.005f
-                            if (speed > 20) speed = 0f
-                            if (ttc > 1) ttc = 0f
+                            CanvasThread.isDataReceived =true
+                            ttc -= 0.03f
+                            if (speed > 200) speed = 0f
+                            if (ttc < 0) ttc = maxTTC
                             CanvasThread.isDataReceived = true
                             sleep(30)
                         }

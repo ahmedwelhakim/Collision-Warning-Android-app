@@ -12,13 +12,13 @@ import com.example.warningsystem.CanvasView.Companion.BluetoothHashMapReceive
 @RequiresApi(Build.VERSION_CODES.S)
 class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight: Int) : Thread() {
     companion object {
-        var isDataReceived = false
+        var isDataReceived = true
     }
 
     @RequiresApi(Build.VERSION_CODES.S)
     private var running = true
     private var drawingSpeed1: Speed
-    private var drawingTTC: TTCDrawing
+    private var collisionWarning: CollisionWarningDrawer
     private var imageDrawing: ImageDrawing
 
     ////--------------------------Debugging--Purpose------------------------------------------------
@@ -40,7 +40,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
     init {
 
         drawingSpeed1 = Speed(0, view.context, canvasWidth, canvasHeight)
-        drawingTTC = TTCDrawing(1, view.context, canvasWidth, canvasHeight)
+        collisionWarning = CollisionWarningDrawer(1, view.context, canvasWidth, canvasHeight)
         imageDrawing = ImageDrawing(2, view.context, canvasWidth, canvasHeight)
 
         //////-------------------------------Debugging Purpose-------------------------------
@@ -59,39 +59,39 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
 
     override fun run() {
-
+        var c: Canvas? = null
         while (running) {
 
-            var c: Canvas? = null
-            try {
-                if (isDataReceived) {
+
+            if (isDataReceived) {
+                try {
                     c = view.holder.lockCanvas()
 
                     synchronized(view.holder) {
-
-
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-                        if (!(CanvasView.isDebugging) && c!=null) {
-
+                        if (!(CanvasView.isDebugging) && c != null) {
+                            var speed = if (drawingSpeed1.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
+                                "speed"
+                            ).toFloat() ) else 0f
                             isDataReceived = false
-                            var speed = 0f
+                            //var speed = 0f
                             if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
-                               speed =
+                                speed =
                                     MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
                                         .toFloat() * 3.6f // to Kmph
                             }
                             drawingSpeed1.textValue = speed.toString()
                             drawingSpeed1.draw(c)
 
-                            drawingTTC.textValue = BluetoothHashMapReceive.getMapValue("ttc")
-                            drawingTTC.draw(c)
+                            collisionWarning.textValue = BluetoothHashMapReceive.getMapValue("ttc")
+                            collisionWarning.draw(c)
 
                             imageDrawing.speed =
                                 if (drawingSpeed1.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
                                     "speed"
                                 ).toFloat()) else -1f
                             imageDrawing.ttc =
-                                if (drawingTTC.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
+                                if (collisionWarning.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
                                     "ttc"
                                 ).toFloat()) else -1f
                             imageDrawing.draw(c)
@@ -99,14 +99,16 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                             // -------------------------------------------------------------------------
                             // debugging text drawing should be removed lately
                             // -------------------------------------------------------------------------
+                            isDataReceived = false
                             drawDebugTexts(c)
                             /////---------------------------------------------------------------------------
                         }
                     }
-                }
-            } finally {
-                if (c != null) {
-                    view.holder.unlockCanvasAndPost(c)
+                } finally {
+                    if (c != null) {
+                        view.holder.unlockCanvasAndPost(c)
+                    }
+
                 }
             }
         }
@@ -132,7 +134,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
             c.drawText("${i.key} = ${i.value}", x, y + 50, paint)
             y += paint.textSize * 1.5f
         }
-        for(i in MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap()){
+        for (i in MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap()) {
             c.drawText("${i.key} = ${i.value}", x, y + 50, paint)
             y += paint.textSize * 1.5f
         }

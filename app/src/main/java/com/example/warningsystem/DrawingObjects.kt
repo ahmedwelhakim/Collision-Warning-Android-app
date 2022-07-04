@@ -6,11 +6,9 @@ import android.graphics.*
 import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import android.os.Build
-import android.util.Log
 import androidx.annotation.RequiresApi
 import java.text.DecimalFormat
 import java.util.*
-import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.math.pow
@@ -97,7 +95,7 @@ abstract class DrawingObjects(context: Context) {
 class Speed : DrawingObjects {
     //private var oval: RectF
     private var arcPaint: Paint = Paint()
-    private val maxSpeed = 20f
+    private val maxSpeed = 200f
     private val arcHeight = 220F
     private val arcWidth = 450F
     private var textBound = Rect()
@@ -250,7 +248,7 @@ class Speed : DrawingObjects {
     }
 }
 
-class TTCDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canvasHeight: Int) :
+class CollisionWarningDrawer(blockPosition: Int, context: Context, canvasWidth: Int, canvasHeight: Int) :
     DrawingObjects(blockPosition, context, canvasWidth, canvasHeight) {
     private var titleX: Float = 0F
     private var titleY: Float = 0F
@@ -267,13 +265,13 @@ class TTCDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canvasH
     private var linePaint: Paint
     private var shadowPaint: Paint
     private val lineWidth = 550f
-    private var maxTTC = 1F
+    private var maxTTC = 10F
     private var halfTTC = maxTTC / 2F
     private var r: Float = 0f
     private var g: Float = 0f
     private var strokePaint: Paint = Paint()
-
-    private var ttc by Delegates.notNull<Float>()
+    private val colorOffset = 10
+    private var ttc = 10f
     private val df: DecimalFormat = DecimalFormat("0.00")
 
     init {
@@ -332,34 +330,27 @@ class TTCDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canvasH
 
         c?.drawText(titleText, titleX, titleY, titlePaint)
         ttc = textValue.toFloat()
+        ttc = min(maxTTC,ttc)
+        ttc = max(0f,ttc)
 
 
-        //c?.drawText(df.format(ttc) + " s", valueX, valueY, textValuePaint)
-        maxTTC = 1F
+
+
         halfTTC = maxTTC / 2F
 
-      /*  if (ttc > maxTTC / 2f) {
+        if (ttc > maxTTC / 2f) {
             r = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
             g = min((ttc / maxTTC) * 2f * GREEN, GREEN.toFloat())
         } else {
             g = min((ttc / maxTTC) * 2.5f * GREEN, GREEN.toFloat())
             r = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
         }
-*/
 
-        if (ttc <= halfTTC) {
-            r = min(
-                ((RED * ((ttc / (halfTTC).toDouble()).pow(0.7)))).toFloat(),
-                RED.toFloat()
-            )
-            g = GREEN.toFloat()
-        } else {
-            g = ((GREEN.toFloat() * ((1F - ((ttc - halfTTC) / halfTTC)))).toFloat())
-            r = RED.toFloat()
-        }
 
-        lineStopX = max(lineStartX + (ttc / maxTTC) * lineWidth,lineStartX)
-        linePaint.color = myRgb(r, g, 0f)
+
+
+        lineStopX = max(lineStartX + (1 - ttc / maxTTC) * lineWidth,lineStartX)
+        linePaint.color =  myRgb(max(r-colorOffset,0f), max(g-colorOffset,0f), 0f)
 
         c?.drawLine(lineStartX, lineStartY, lineStopX, lineStopY, strokePaint)
         c?.drawLine(lineStartX, lineStartY, lineStopX, lineStopY, linePaint)
@@ -389,9 +380,9 @@ class ImageDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canva
     private val mWidth: Int = 450
     private val mHeight: Int = 350
     var speed: Float = 0f
-    var ttc: Float = 0f
-    val maxSpeed = 20
-    val maxTTC = 1f
+    var ttc: Float = 10f
+    val maxSpeed = 200
+    val maxTTC = 10f
     var bmWidthOffset =260
     var bmHeightOffset =200
     init {
@@ -443,15 +434,12 @@ class ImageDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canva
                 sRed = RED.toFloat()
             }
             val halfTTC = maxTTC/2.0f
-            if (ttc <= halfTTC) {
-                tRed = min(
-                    ((RED * ((ttc / (halfTTC).toDouble()).pow(0.7)))).toFloat(),
-                    RED.toFloat()
-                )
-                tGreen = GREEN.toFloat()
+            if (ttc > maxTTC / 2f) {
+                tRed = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
+                tGreen = min((ttc / maxTTC) * 2f * GREEN, GREEN.toFloat())
             } else {
-                tGreen = ((GREEN.toFloat() * ((1F - ((ttc - halfTTC) / halfTTC)))).toFloat())
-                tRed = RED.toFloat()
+                tGreen = min((ttc / maxTTC) * 2.5f * GREEN, GREEN.toFloat())
+                tRed = min(((maxTTC - ttc) / maxTTC) * 2f * RED, RED.toFloat())
             }
 
 

@@ -50,6 +50,7 @@ class Compass : SensorEventListener {
         mSensorManager.unregisterListener(this,mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD))
         mSensorManager.unregisterListener(this,mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY))
     }
+    @RequiresApi(Build.VERSION_CODES.S)
     override fun onSensorChanged(event: SensorEvent?) {
 
 
@@ -123,7 +124,7 @@ class Compass : SensorEventListener {
                  * Write the heading in the BluetoothHashmap send
                  */
                 MonitorActivity.Companion.BluetoothHashMapSend.putMapValue("mHeading",current_measured_bearing.toString())
-
+                CanvasThread.isDataReceived = true
                 val gsonMapBuilder = GsonBuilder()
                 val gsonObject = gsonMapBuilder.create()
                 val jsonString =gsonObject.toJson(MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap())

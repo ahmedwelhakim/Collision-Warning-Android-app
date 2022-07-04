@@ -12,9 +12,11 @@ import android.hardware.SensorManager
 import android.location.Location
 import android.location.LocationListener
 import android.location.LocationManager
+import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.bluetooth.Bluetooth
@@ -43,8 +45,8 @@ class MonitorActivity : AppCompatActivity(){
         fun getInstance(): Activity? = activityInstance
         const val LOCATION_PERMISSION_REQ_CODE =  355
 
-        const val MAX_TIME_INTERVAL = 50
-        const val MIN_TIME_INTERVAL = 10
+        const val MAX_TIME_INTERVAL = 100
+        const val MIN_TIME_INTERVAL = 50
 
         private val bluetoothHashMapSend: HashMap<String, String> = HashMap()
         class BluetoothHashMapSend {
@@ -136,6 +138,7 @@ class MonitorActivity : AppCompatActivity(){
             }
 
         locationCallback = object : LocationCallback() {
+            @RequiresApi(Build.VERSION_CODES.S)
             override fun onLocationResult(locationResult: LocationResult) {
                 val lon:Double = locationResult.lastLocation?.longitude!!
                 val lat:Double = locationResult.lastLocation?.latitude!!
@@ -148,6 +151,7 @@ class MonitorActivity : AppCompatActivity(){
                 BluetoothHashMapSend.putMapValue("mSpeed",speed.toString())
                 BluetoothHashMapSend.putMapValue("mSpeedAccuracy",speedAccuracy.toString())
                 BluetoothHashMapSend.putMapValue("mGpsAccuracy",lonAccuracy.toString())
+                CanvasThread.isDataReceived = true
 
                 val gsonMapBuilder =GsonBuilder()
                 val gsonObject = gsonMapBuilder.create()
