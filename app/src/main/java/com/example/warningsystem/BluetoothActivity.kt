@@ -53,7 +53,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         setContentView(R.layout.activity_main)
 
 
-        bluetooth = Bluetooth.getBluetoothInstance(1, this@BluetoothActivity)!!
+        bluetooth = Bluetooth.getBluetoothInstance( this@BluetoothActivity)
         bluetooth.bluetoothEnable()
         lvBtDev = findViewById<View>(R.id.lvDevices) as ListView
         lvBtDev.divider = null
@@ -89,7 +89,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         when (parent?.id) {
             R.id.lvDevices -> {
                 if (bluetooth.isEnabled()) {
-                    bluetooth.stopSearching(applicationContext)
+                    bluetooth.stopSearching()
                     val o: Any = lvBtDev.getItemAtPosition(position)
                     var data = o.toString()
                     data = data.replace("\\[".toRegex(), "").replace("]".toRegex(), "")
@@ -124,7 +124,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
                 lvList.removeAll(lvList.toSet())
                 if (bluetooth.isEnabled()) {
                     scanButton.isEnabled = false
-                    bluetooth.stopSearching(applicationContext)
+                    bluetooth.stopSearching()
                     bluetooth.startSearching(
                         receiver, arrayOf(
                             Bluetooth.ACTION_FOUND,

@@ -29,10 +29,7 @@ class CanvasView : SurfaceView {
 
 
     companion object {
-        private var instance: CanvasView? = null
-        fun getViewInstance(): CanvasView? {
-            return instance
-        }
+
 
         var isDebugging = false
         private val bluetoothHashMapReceive: HashMap<String, String> = HashMap()
@@ -46,7 +43,7 @@ class CanvasView : SurfaceView {
                 }
 
                 fun getMapValue(key: String) = runBlocking {
-                    return@runBlocking bluetoothHashMapReceive[key] as String
+                    return@runBlocking bluetoothHashMapReceive[key]!!
                 }
 
                 fun toSortedMap() = runBlocking {
@@ -118,7 +115,7 @@ class CanvasView : SurfaceView {
                         var keyName: String
                         var valueName: String
                         var stringJson: String
-                        val bluetooth = Bluetooth.getBluetoothInstanceWithoutContext(1)
+                        val bluetooth = Bluetooth.getBluetoothInstanceWithoutContext()
                         var count = 0f
 
                         var ttc = maxTTC

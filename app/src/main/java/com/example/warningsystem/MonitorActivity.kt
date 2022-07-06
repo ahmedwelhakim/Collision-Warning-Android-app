@@ -83,7 +83,7 @@ class MonitorActivity : AppCompatActivity(){
         activityInstance = this
 
 
-        bluetooth = Bluetooth.getBluetoothInstance(1, this@MonitorActivity)!!
+        bluetooth = Bluetooth.getBluetoothInstance( this@MonitorActivity)!!
         val jsonOutput:JSONObject
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 

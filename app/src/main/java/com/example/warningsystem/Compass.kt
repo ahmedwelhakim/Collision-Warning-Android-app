@@ -1,6 +1,6 @@
 package com.example.warningsystem
 
-import android.R
+
 import android.app.Activity
 import android.content.Context.LOCATION_SERVICE
 import android.content.Context.SENSOR_SERVICE
@@ -15,30 +15,29 @@ import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.example.bluetooth.Bluetooth
 import com.google.gson.GsonBuilder
-import java.lang.String
+
 import kotlin.FloatArray
 import kotlin.Int
-import kotlin.TODO
+
 import kotlin.properties.Delegates
 
 
-const val TAG = "Compass"
 
-class Compass : SensorEventListener {
-    private val activity: Activity
+
+class Compass(private val activity: Activity) : SensorEventListener {
+    private val TAG = "Compass"
     var compassLastMeasuredBearing: Float = 0f
     private val SMOOTHING_FACTOR_COMPASS = 0.1f
     private var current_measured_bearing by Delegates.notNull<Float>()
     private val bluetooth:Bluetooth?
-    private lateinit var mSensorManager: SensorManager
+    private var mSensorManager: SensorManager
     var mGravity:FloatArray? = null
     var mMagnetic:FloatArray? = null
-    constructor(activity: Activity) {
-        this.activity = activity
-        initSensors()
-        bluetooth=Bluetooth.getBluetoothInstance(1,activity)
-        mSensorManager = activity.getSystemService(SENSOR_SERVICE) as SensorManager
 
+    init {
+        initSensors()
+        bluetooth=Bluetooth.getBluetoothInstance(activity)
+        mSensorManager = activity.getSystemService(SENSOR_SERVICE) as SensorManager
     }
      fun startListener(){
         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), MonitorActivity.MIN_TIME_INTERVAL *1000,
@@ -56,10 +55,10 @@ class Compass : SensorEventListener {
 
         if (event?.sensor?.getType() == Sensor.TYPE_GRAVITY) {
 
-             mGravity = event?.values.clone()
+             mGravity = event.values.clone()
 
         } else if (event?.sensor?.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
-            mMagnetic = event?.values.clone()
+            mMagnetic = event.values.clone()
         }
 
         if (mGravity != null && mMagnetic != null) {
@@ -140,11 +139,10 @@ class Compass : SensorEventListener {
     }
 
     private fun initSensors() {
-        val locationManager = activity.getSystemService(LOCATION_SERVICE) as LocationManager?
         val sensorManager = activity.getSystemService(SENSOR_SERVICE) as SensorManager?
-        val mSensorGravity = sensorManager!!.getDefaultSensor(Sensor.TYPE_GRAVITY)
+        val mSensorGravity = sensorManager?.getDefaultSensor(Sensor.TYPE_GRAVITY)
         val mSensorMagneticField = sensorManager
-            .getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
+            ?.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)
 
         /* Initialize the gravity sensor */if (mSensorGravity != null) {
             Log.i(TAG, "Gravity sensor available. (TYPE_GRAVITY)")

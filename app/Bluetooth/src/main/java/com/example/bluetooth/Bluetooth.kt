@@ -1,17 +1,14 @@
 package com.example.bluetooth
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.bluetooth.*
 import android.content.*
 import android.content.pm.PackageManager
-import android.os.Build
 import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import java.io.IOException
@@ -19,11 +16,6 @@ import java.io.InputStream
 import java.io.OutputStream
 import java.nio.charset.Charset
 import java.util.*
-import kotlin.collections.HashMap
-
-val MY_UUID_INSECURE: UUID =
-    UUID.fromString("00001101-0000-1000-8000-00805F9B34FB")
-const val TAG = "Bluetooth"
 
 
 class Bluetooth private constructor(activity: Activity) {
@@ -32,14 +24,16 @@ class Bluetooth private constructor(activity: Activity) {
     private var mSocket: BluetoothSocket? = null
     private var mInputStream: InputStream? = null
     private var mOutputStream: OutputStream? = null
+
     private var activity: Activity
-    var isRunning = true
+    var isRunning = false
         private set
 
 
     companion object {
-        private val instancesMap: HashMap<Int, Bluetooth> = kotlin.collections.HashMap()
-        const val serialVersionUID = 42L
+        private lateinit var instance: Bluetooth
+        private const val MY_UUID_INSECURE = "00001101-0000-1000-8000-00805F9B34FB"
+        private const val TAG = "Bluetooth"
         const val REQUEST_CODE = 299
         const val MAX_RCV_BUFFER_LENGTH = 1024
         const val MY_PERMISSIONS_REQUEST_LOCATION = 99
@@ -50,17 +44,18 @@ class Bluetooth private constructor(activity: Activity) {
         const val ACTION_ACL_CONNECTED = BluetoothDevice.ACTION_ACL_CONNECTED
 
 
-        fun getBluetoothInstance(code: Int, activity: Activity): Bluetooth? {
-            instancesMap[code]?.activity = activity
-            return if (instancesMap.contains(code))
-                instancesMap[code]
-            else {
-                instancesMap[code] = Bluetooth(activity)
-                instancesMap[code]
+        fun getBluetoothInstance( activity: Activity): Bluetooth {
+            return if(this::instance.isInitialized ) {
+                instance.activity = activity
+                instance
+            }else{
+                instance = Bluetooth(activity)
+                instance
             }
         }
-        fun getBluetoothInstanceWithoutContext(code: Int):Bluetooth? {
-            return instancesMap[code]
+        fun getBluetoothInstanceWithoutContext():Bluetooth {
+            assert(this::instance.isInitialized )
+            return instance
         }
     }
 
@@ -138,7 +133,7 @@ class Bluetooth private constructor(activity: Activity) {
         bluetoothAdapter?.startDiscovery()
     }
 
-    fun stopSearching(context: Context) {
+    fun stopSearching() {
         if (ActivityCompat.checkSelfPermission(
                 activity,
                 Manifest.permission.BLUETOOTH_SCAN
@@ -234,11 +229,11 @@ class Bluetooth private constructor(activity: Activity) {
             ) {
                 ActivityCompat.requestPermissions(
                     activity,
-                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT), Bluetooth.REQUEST_CODE
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
                 )
 
             }
-            tmp = mDevice!!.createInsecureRfcommSocketToServiceRecord(MY_UUID_INSECURE)
+            tmp = mDevice!!.createInsecureRfcommSocketToServiceRecord( UUID.fromString(MY_UUID_INSECURE))
 
         } catch (e: Exception) {
             Log.e(
@@ -331,7 +326,7 @@ class Bluetooth private constructor(activity: Activity) {
     }
 
     fun read(): Pair<ByteArray,Boolean> {
-        val buffer: ByteArray = ByteArray(MAX_RCV_BUFFER_LENGTH)
+        val buffer = ByteArray(MAX_RCV_BUFFER_LENGTH)
         var size: Int = -1
         var status = false
         if (mInputStream != null) {
@@ -394,65 +389,65 @@ class Bluetooth private constructor(activity: Activity) {
         val accept = AcceptThread(activity, bluetoothAdapter)
         accept.start()
     }
+    private inner class AcceptThread(activity: Activity, bluetoothAdapter: BluetoothAdapter?) : Thread() {
+        // The local server socket
+        private val mmServerSocket: BluetoothServerSocket?
 
+        init {
+            var tmp: BluetoothServerSocket? = null
 
-}
-
-
-private class AcceptThread(activity: Activity, bluetoothAdapter: BluetoothAdapter?) : Thread() {
-    // The local server socket
-    private val mmServerSocket: BluetoothServerSocket?
-
-    init {
-        var tmp: BluetoothServerSocket? = null
-
-        // Create a new listening server socket
-        try {
-            if (ActivityCompat.checkSelfPermission(
-                    activity,
-                    Manifest.permission.BLUETOOTH_CONNECT
-                ) != PackageManager.PERMISSION_GRANTED
-            ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                    200
+            // Create a new listening server socket
+            try {
+                if (ActivityCompat.checkSelfPermission(
+                        activity,
+                        Manifest.permission.BLUETOOTH_CONNECT
+                    ) != PackageManager.PERMISSION_GRANTED
+                ) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                        200
+                    )
+                }
+                tmp = bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
+                    "WarningSystem",
+                    UUID.fromString(MY_UUID_INSECURE)
                 )
+                Log.d(TAG, "AcceptThread: Setting up Server using: $MY_UUID_INSECURE")
+            } catch (e: IOException) {
+                Log.e(TAG, "AcceptThread: IOException: " + e.message)
             }
-            tmp = bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
-                "WarningSystem",
-                MY_UUID_INSECURE
-            )
-            Log.d(TAG, "AcceptThread: Setting up Server using: $MY_UUID_INSECURE")
-        } catch (e: IOException) {
-            Log.e(TAG, "AcceptThread: IOException: " + e.message)
+            mmServerSocket = tmp
         }
-        mmServerSocket = tmp
+
+        override fun run() {
+            Log.d(TAG, "run: AcceptThread Running.")
+            var socket: BluetoothSocket? = null
+            try {
+                // This is a blocking call and will only return on a
+                // successful connection or an exception
+                Log.d(TAG, "run: RFCOMM server socket start.....")
+                socket = mmServerSocket!!.accept()
+                Log.d(TAG, "run: RFCOMM server socket accepted connection.")
+            } catch (e: IOException) {
+                Log.e(TAG, "AcceptThread: IOException: " + e.message)
+            }
+            Log.i(TAG, "END mAcceptThread ")
+        }
+
+        fun cancel() {
+            Log.d(TAG, "cancel: Canceling AcceptThread.")
+            try {
+                mmServerSocket!!.close()
+            } catch (e: IOException) {
+                Log.e(TAG, "cancel: Close of AcceptThread ServerSocket failed. " + e.message)
+            }
+        }
     }
 
-    override fun run() {
-        Log.d(TAG, "run: AcceptThread Running.")
-        var socket: BluetoothSocket? = null
-        try {
-            // This is a blocking call and will only return on a
-            // successful connection or an exception
-            Log.d(TAG, "run: RFCOMM server socket start.....")
-            socket = mmServerSocket!!.accept()
-            Log.d(TAG, "run: RFCOMM server socket accepted connection.")
-        } catch (e: IOException) {
-            Log.e(TAG, "AcceptThread: IOException: " + e.message)
-        }
-        Log.i(TAG, "END mAcceptThread ")
-    }
 
-    fun cancel() {
-        Log.d(TAG, "cancel: Canceling AcceptThread.")
-        try {
-            mmServerSocket!!.close()
-        } catch (e: IOException) {
-            Log.e(TAG, "cancel: Close of AcceptThread ServerSocket failed. " + e.message)
-        }
-    }
 }
+
+
 
 

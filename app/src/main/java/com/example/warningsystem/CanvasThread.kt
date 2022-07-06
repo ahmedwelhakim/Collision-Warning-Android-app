@@ -70,7 +70,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                     synchronized(view.holder) {
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                         if (!(CanvasView.isDebugging) && c != null) {
-                            var speed = if (drawingSpeed1.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
+                            var speed = if (BluetoothHashMapReceive.getMapValue("speed").contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
                                 "speed"
                             ).toFloat() ) else 0f
                             isDataReceived = false
