@@ -6,22 +6,17 @@ import org.json.JSONException
 import org.json.JSONObject
 import kotlin.concurrent.thread
 
-class DataManager {
+object DataManager  {
     private val mHashMap:HashMap<String,String> = HashMap()
-    private val bluetooth:Bluetooth = Bluetooth.getBluetoothInstanceWithoutContext()
-    private constructor()
+
+
     init{
         mHashMap["speed"] = "0"
         mHashMap["ttc"] = "100"
         mHashMap["maxSpeed"] = "200"
         runBluetoothReadingThread()
     }
-    companion object{
-        private val instance = DataManager()
-        fun getInstance():DataManager{
-            return instance
-        }
-    }
+
 
     fun putMapValue(key: String, value: String) = runBlocking {
         mHashMap[key] = value
@@ -46,10 +41,11 @@ class DataManager {
             var iteratorObj: Iterator<String>
             var keyName: String
             var valueName: String
+            val bluetooth:Bluetooth = Bluetooth.getInstanceWithoutArg()!!
             while (true) {
                 receivedData = bluetooth.read().first
                 receivedStatus = bluetooth.read().second
-                if (receivedData != null && receivedStatus) {
+                if ( receivedStatus) {
                     jsonResponse = try {
                         JSONObject(String(receivedData))
                     } catch (ex: JSONException) {

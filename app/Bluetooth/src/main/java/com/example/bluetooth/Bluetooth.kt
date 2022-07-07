@@ -6,6 +6,7 @@ import android.app.AlertDialog
 import android.bluetooth.*
 import android.content.*
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Parcelable
 import android.util.Log
 import android.widget.Toast
@@ -30,8 +31,8 @@ class Bluetooth private constructor(activity: Activity) {
         private set
 
 
-    companion object {
-        private lateinit var instance: Bluetooth
+    companion object : SingletonHolder<Bluetooth, Activity>(::Bluetooth){
+
         private const val MY_UUID_INSECURE = "00001101-0000-1000-8000-00805F9B34FB"
         private const val TAG = "Bluetooth"
         const val REQUEST_CODE = 299
@@ -44,19 +45,7 @@ class Bluetooth private constructor(activity: Activity) {
         const val ACTION_ACL_CONNECTED = BluetoothDevice.ACTION_ACL_CONNECTED
 
 
-        fun getBluetoothInstance( activity: Activity): Bluetooth {
-            return if(this::instance.isInitialized ) {
-                instance.activity = activity
-                instance
-            }else{
-                instance = Bluetooth(activity)
-                instance
-            }
-        }
-        fun getBluetoothInstanceWithoutContext():Bluetooth {
-            assert(this::instance.isInitialized )
-            return instance
-        }
+
     }
 
     init {
@@ -66,6 +55,31 @@ class Bluetooth private constructor(activity: Activity) {
         bluetoothAdapter = bluetoothManager.adapter
     }
 
+    open class SingletonHolder<out T: Any, in A>(creator: (A) -> T) {
+        private var creator: ((A) -> T)? = creator
+        @Volatile private var instance: T? = null
+
+        fun getInstance(arg: A): T {
+            val i = instance
+            if (i != null) {
+                return i
+            }
+
+            return synchronized(this) {
+                val i2 = instance
+                if (i2 != null) {
+                    i2
+                } else {
+                    val created = creator!!(arg)
+                    instance = created
+                    creator = null
+                    created
+                }
+            }
+        }fun getInstanceWithoutArg():T?{
+           return instance
+        }
+    }
     fun bluetoothEnable() {
         checkNeededPermission()
         if (bluetoothAdapter == null) {
@@ -81,10 +95,17 @@ class Bluetooth private constructor(activity: Activity) {
                     Manifest.permission.BLUETOOTH_CONNECT
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
+                    )
+                }else{
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.BLUETOOTH,Manifest.permission.BLUETOOTH_ADMIN), REQUEST_CODE
+                    )
+                }
             }
             activity.startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT)
 
@@ -97,10 +118,12 @@ class Bluetooth private constructor(activity: Activity) {
                 Manifest.permission.BLUETOOTH_CONNECT
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions(
+                    activity,
+                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
+                )
+            }
 
         }
         bluetoothAdapter?.disable()
@@ -123,10 +146,12 @@ class Bluetooth private constructor(activity: Activity) {
                     Manifest.permission.BLUETOOTH_SCAN
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(Manifest.permission.BLUETOOTH_SCAN), REQUEST_CODE
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.BLUETOOTH_SCAN), REQUEST_CODE
+                    )
+                }
             }
             bluetoothAdapter?.cancelDiscovery()
         }
@@ -139,10 +164,12 @@ class Bluetooth private constructor(activity: Activity) {
                 Manifest.permission.BLUETOOTH_SCAN
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(Manifest.permission.BLUETOOTH_SCAN), REQUEST_CODE
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions(
+                    activity,
+                    arrayOf(Manifest.permission.BLUETOOTH_SCAN), REQUEST_CODE
+                )
+            }
         }
         bluetoothAdapter?.cancelDiscovery()
     }
@@ -156,10 +183,12 @@ class Bluetooth private constructor(activity: Activity) {
                 Manifest.permission.BLUETOOTH_ADVERTISE
             ) != PackageManager.PERMISSION_GRANTED
         ) {
-            ActivityCompat.requestPermissions(
-                activity,
-                arrayOf(Manifest.permission.BLUETOOTH_ADVERTISE), REQUEST_CODE
-            )
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                ActivityCompat.requestPermissions(
+                    activity,
+                    arrayOf(Manifest.permission.BLUETOOTH_ADVERTISE), REQUEST_CODE
+                )
+            }
         }
         activity.startActivity(discoverableIntent)
         Log.i("Log", "Discoverable ")
@@ -227,10 +256,12 @@ class Bluetooth private constructor(activity: Activity) {
                     Manifest.permission.BLUETOOTH_CONNECT
                 ) != PackageManager.PERMISSION_GRANTED
             ) {
-                ActivityCompat.requestPermissions(
-                    activity,
-                    arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
-                )
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                    ActivityCompat.requestPermissions(
+                        activity,
+                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT), REQUEST_CODE
+                    )
+                }
 
             }
             tmp = mDevice!!.createInsecureRfcommSocketToServiceRecord( UUID.fromString(MY_UUID_INSECURE))
@@ -278,9 +309,9 @@ class Bluetooth private constructor(activity: Activity) {
     fun connectToThisDevice(
         address: String
     ): Boolean {
-        var status = false
-        var socketStatus = false
-        var streamStatus = false
+        var status:Boolean
+        val socketStatus:Boolean
+        val streamStatus :Boolean
         try {
             mDevice = bluetoothAdapter?.getRemoteDevice(address)
             socketStatus = getSocket()
@@ -297,7 +328,7 @@ class Bluetooth private constructor(activity: Activity) {
     }
     private inner class SendThread(var data: ByteArray): Thread(){
 
-        public override fun run() {
+        override fun run() {
             if (mOutputStream != null) {
                 val text = String(data, Charset.defaultCharset())
                 Log.d(TAG, "write: Writing to outputStream: $text")
@@ -403,11 +434,13 @@ class Bluetooth private constructor(activity: Activity) {
                         Manifest.permission.BLUETOOTH_CONNECT
                     ) != PackageManager.PERMISSION_GRANTED
                 ) {
-                    ActivityCompat.requestPermissions(
-                        activity,
-                        arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
-                        200
-                    )
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                        ActivityCompat.requestPermissions(
+                            activity,
+                            arrayOf(Manifest.permission.BLUETOOTH_CONNECT),
+                            200
+                        )
+                    }
                 }
                 tmp = bluetoothAdapter?.listenUsingInsecureRfcommWithServiceRecord(
                     "WarningSystem",
@@ -422,13 +455,14 @@ class Bluetooth private constructor(activity: Activity) {
 
         override fun run() {
             Log.d(TAG, "run: AcceptThread Running.")
-            var socket: BluetoothSocket? = null
+            val socket: BluetoothSocket?
             try {
                 // This is a blocking call and will only return on a
                 // successful connection or an exception
                 Log.d(TAG, "run: RFCOMM server socket start.....")
                 socket = mmServerSocket!!.accept()
                 Log.d(TAG, "run: RFCOMM server socket accepted connection.")
+                mSocket = socket
             } catch (e: IOException) {
                 Log.e(TAG, "AcceptThread: IOException: " + e.message)
             }

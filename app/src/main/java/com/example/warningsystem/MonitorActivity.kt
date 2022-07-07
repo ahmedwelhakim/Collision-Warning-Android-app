@@ -1,22 +1,14 @@
 package com.example.warningsystem
 
 import android.Manifest
-import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Context
 import android.content.pm.PackageManager
-import android.hardware.Sensor
-import android.hardware.SensorEvent
-import android.hardware.SensorEventListener
-import android.hardware.SensorManager
 import android.location.Location
-import android.location.LocationListener
 import android.location.LocationManager
-import android.os.Build
 import android.os.Bundle
 import android.os.Looper
 import android.util.Log
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.bluetooth.Bluetooth
@@ -25,7 +17,7 @@ import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.runBlocking
-import org.json.JSONObject
+
 
 
 class MonitorActivity : AppCompatActivity(){
@@ -33,14 +25,13 @@ class MonitorActivity : AppCompatActivity(){
     private lateinit var locationCallback: LocationCallback
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
-    private lateinit var locationListener: LocationListener
     private lateinit var locationManager: LocationManager
     private lateinit var bluetooth:Bluetooth
     private lateinit var compass:Compass
 
 
     companion object {
-        @SuppressLint("StaticFieldLeak")
+
         private var activityInstance: MonitorActivity? = null
         fun getInstance(): Activity? = activityInstance
         const val LOCATION_PERMISSION_REQ_CODE =  355
@@ -76,15 +67,14 @@ class MonitorActivity : AppCompatActivity(){
     }
 
     private val requestingLocationUpdates = true
-    @SuppressLint("MissingInflatedId")
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_monitor)
         activityInstance = this
 
 
-        bluetooth = Bluetooth.getBluetoothInstance( this@MonitorActivity)!!
-        val jsonOutput:JSONObject
+        bluetooth = Bluetooth.getInstance( this@MonitorActivity)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -138,7 +128,6 @@ class MonitorActivity : AppCompatActivity(){
             }
 
         locationCallback = object : LocationCallback() {
-            @RequiresApi(Build.VERSION_CODES.S)
             override fun onLocationResult(locationResult: LocationResult) {
                 val lon:Double = locationResult.lastLocation?.longitude!!
                 val lat:Double = locationResult.lastLocation?.latitude!!
@@ -200,8 +189,6 @@ class MonitorActivity : AppCompatActivity(){
     private fun stopLocationUpdates() {
         fusedLocationClient.removeLocationUpdates(locationCallback)
     }
-
-
 
 }
 

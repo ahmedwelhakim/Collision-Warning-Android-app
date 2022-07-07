@@ -2,11 +2,9 @@ package com.example.warningsystem
 
 import android.content.Context
 import android.graphics.*
-import android.os.Build
 import android.util.AttributeSet
 import android.util.Log
 import android.view.*
-import androidx.annotation.RequiresApi
 import com.example.bluetooth.Bluetooth
 import kotlinx.coroutines.runBlocking
 import org.json.JSONException
@@ -17,7 +15,7 @@ import kotlin.concurrent.thread
 import kotlin.properties.Delegates
 
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 class CanvasView : SurfaceView {
     constructor(context: Context) : super(context)
     constructor(context: Context, attrs: AttributeSet) : super(context, attrs)
@@ -57,7 +55,6 @@ class CanvasView : SurfaceView {
     }
 
     private lateinit var loopThread: CanvasThread
-    private var x = 0
     private var viewWidth by Delegates.notNull<Int>()
     private var viewHeight by Delegates.notNull<Int>()
 
@@ -83,9 +80,8 @@ class CanvasView : SurfaceView {
 
             override fun surfaceCreated(holder: SurfaceHolder) {
 
-                val display = (context.getSystemService(Context.WINDOW_SERVICE)) as WindowManager
-                val screenHeight = display.defaultDisplay.height
-                val screenWidth = display.defaultDisplay.width
+                val screenHeight = height
+                val screenWidth = width
                 val param = layoutParams
                 viewWidth = screenWidth
                 viewHeight = screenHeight - y.toInt()
@@ -114,15 +110,10 @@ class CanvasView : SurfaceView {
                         var iteratorObj: Iterator<String>
                         var keyName: String
                         var valueName: String
-                        var stringJson: String
-                        val bluetooth = Bluetooth.getBluetoothInstanceWithoutContext()
-                        var count = 0f
-
-                        var ttc = maxTTC
+                        val bluetooth = Bluetooth.getInstanceWithoutArg()
                         while (true) {
-                            tmp = bluetooth?.read()
-                            if (tmp?.first != null && tmp.second) {
-                                stringJson = String(tmp.first)
+                            tmp = bluetooth!!.read()
+                            if ( tmp.second) {
                                 jsonResponse = try {
                                     JSONObject(String(tmp.first))
                                 } catch (ex: JSONException) {
@@ -148,7 +139,7 @@ class CanvasView : SurfaceView {
                             /*if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
                                 speed =
                                     MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
-                                        .toFloat() * 3.6f // to Kmph
+                                        .toFloat() * 3.6f // to Km/hr
                             }else speed = 0f*/
                             speed+=0.5f
                             BluetoothHashMapReceive.putMapValue("speed",speed.toString())
@@ -190,9 +181,15 @@ class CanvasView : SurfaceView {
                 invalidate()
             }
             MotionEvent.ACTION_UP -> {
-                handler.removeCallbacks(runnable)
+                performClick()
             }
         }
+        return true
+    }
+
+    override fun performClick(): Boolean {
+        super.performClick()
+        handler.removeCallbacks(runnable)
         return true
     }
 

@@ -4,18 +4,16 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
-import android.os.Build
-import androidx.annotation.RequiresApi
 import com.example.warningsystem.CanvasView.Companion.BluetoothHashMapReceive
 
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight: Int) : Thread() {
     companion object {
         var isDataReceived = true
     }
 
-    @RequiresApi(Build.VERSION_CODES.S)
+
     private var running = true
     private var drawingSpeed1: Speed
     private var collisionWarning: CollisionWarningDrawer
@@ -25,8 +23,8 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
     private val paint = Paint()
     private var x = 70f
     private var y: Float =
-        ((view.height) / DrawingObjects.BLOCKS.toFloat()) * (DrawingObjects.BLOCKS) -
-                (DrawingObjects.BLOCKS - 2f) * (view.height) / DrawingObjects.BLOCKS.toFloat()
+        ((view.height) / DrawingObjects.BLOCKS) * (DrawingObjects.BLOCKS) -
+                (DrawingObjects.BLOCKS - 2f) * (view.height) / DrawingObjects.BLOCKS
     private val paintBg = Paint()
     private val blockHeight: Int
     private val blockWidth: Int
@@ -34,7 +32,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
     private val top: Float
     private val bottom: Float
     private val right: Float
-    private val debugPaint = Paint()
+
 
     ////--------------------------------------------------------------------------------------------
     init {
@@ -44,7 +42,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
         imageDrawing = ImageDrawing(2, view.context, canvasWidth, canvasHeight)
 
         //////-------------------------------Debugging Purpose-------------------------------
-        blockHeight = (view.height / DrawingObjects.BLOCKS.toFloat()).toInt()
+        blockHeight = (view.height / DrawingObjects.BLOCKS).toInt()
         blockWidth = view.width - 140
 
         left = x
@@ -78,7 +76,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                             if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
                                 speed =
                                     MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
-                                        .toFloat() * 3.6f // to Kmph
+                                        .toFloat() * 3.6f // to Km/h
                             }
                             drawingSpeed1.textValue = speed.toString()
                             drawingSpeed1.draw(c)

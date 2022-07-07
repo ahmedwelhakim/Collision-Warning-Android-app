@@ -2,13 +2,11 @@ package com.example.warningsystem
 
 
 import android.app.Activity
-import android.content.Context.LOCATION_SERVICE
 import android.content.Context.SENSOR_SERVICE
 import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
-import android.location.LocationManager
 import android.os.Build
 import android.util.Log
 import android.view.Surface
@@ -25,18 +23,21 @@ import kotlin.properties.Delegates
 
 
 class Compass(private val activity: Activity) : SensorEventListener {
-    private val TAG = "Compass"
-    var compassLastMeasuredBearing: Float = 0f
-    private val SMOOTHING_FACTOR_COMPASS = 0.1f
-    private var current_measured_bearing by Delegates.notNull<Float>()
+
+    private var compassLastMeasuredBearing: Float = 0f
+    private var currentMeasuredBearing by Delegates.notNull<Float>()
     private val bluetooth:Bluetooth?
     private var mSensorManager: SensorManager
-    var mGravity:FloatArray? = null
-    var mMagnetic:FloatArray? = null
+    private var mGravity:FloatArray? = null
+    private var mMagnetic:FloatArray? = null
+    companion object{
+        private const val TAG = "Compass"
+        private const val SMOOTHING_FACTOR_COMPASS = 0.1f
+    }
 
     init {
         initSensors()
-        bluetooth=Bluetooth.getBluetoothInstance(activity)
+        bluetooth=Bluetooth.getInstance(activity)
         mSensorManager = activity.getSystemService(SENSOR_SERVICE) as SensorManager
     }
      fun startListener(){
@@ -53,11 +54,11 @@ class Compass(private val activity: Activity) : SensorEventListener {
     override fun onSensorChanged(event: SensorEvent?) {
 
 
-        if (event?.sensor?.getType() == Sensor.TYPE_GRAVITY) {
+        if (event?.sensor?.type == Sensor.TYPE_GRAVITY) {
 
              mGravity = event.values.clone()
 
-        } else if (event?.sensor?.getType() == Sensor.TYPE_MAGNETIC_FIELD) {
+        } else if (event?.sensor?.type == Sensor.TYPE_MAGNETIC_FIELD) {
             mMagnetic = event.values.clone()
         }
 
@@ -66,10 +67,8 @@ class Compass(private val activity: Activity) : SensorEventListener {
             val rotationMatrix = FloatArray(9)
             if (SensorManager.getRotationMatrix(rotationMatrix, null, mGravity, mMagnetic)) {
                 /* Compensate device orientation */
-                // http://android-developers.blogspot.de/2010/09/one-screen-turn-deserves-another.html
                 val remappedRotationMatrix = FloatArray(9)
-                when (activity.getWindowManager().getDefaultDisplay()
-                    .getRotation()) {
+                when (activity.display?.rotation) {
                     Surface.ROTATION_0 -> SensorManager.remapCoordinateSystem(
                         rotationMatrix,
                         SensorManager.AXIS_X, SensorManager.AXIS_Y,
@@ -102,27 +101,27 @@ class Compass(private val activity: Activity) : SensorEventListener {
                 )
 
                 /* Get measured value */
-                     current_measured_bearing = (results[0] * 180 / Math.PI).toFloat()
-                if (current_measured_bearing < 0) {
-                    current_measured_bearing += 360f
+                     currentMeasuredBearing = (results[0] * 180 / Math.PI).toFloat()
+                if (currentMeasuredBearing < 0) {
+                    currentMeasuredBearing += 360f
                 }
 
                 /* Smooth values using a 'Low Pass Filter' */
 
 
-                current_measured_bearing =
-                    (current_measured_bearing
-                                + SMOOTHING_FACTOR_COMPASS * (current_measured_bearing - compassLastMeasuredBearing))
+                currentMeasuredBearing =
+                    (currentMeasuredBearing
+                                + SMOOTHING_FACTOR_COMPASS * (currentMeasuredBearing - compassLastMeasuredBearing))
 
                 /*
                  * Update variables for next use (Required for Low Pass
                  * Filter)
-                 */compassLastMeasuredBearing = current_measured_bearing
+                 */compassLastMeasuredBearing = currentMeasuredBearing
 
                 /*
                  * Write the heading in the BluetoothHashmap send
                  */
-                MonitorActivity.Companion.BluetoothHashMapSend.putMapValue("mHeading",current_measured_bearing.toString())
+                MonitorActivity.Companion.BluetoothHashMapSend.putMapValue("mHeading",currentMeasuredBearing.toString())
                 CanvasThread.isDataReceived = true
                 val gsonMapBuilder = GsonBuilder()
                 val gsonObject = gsonMapBuilder.create()

@@ -6,38 +6,28 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
-import android.os.Handler
-import android.preference.PreferenceManager
-import android.text.Layout
 import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.AppCompatButton
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.os.HandlerCompat.postDelayed
 import com.example.bluetooth.Bluetooth
-import java.util.Objects
-import java.util.prefs.Preferences
 import kotlin.math.max
 
 
-@RequiresApi(Build.VERSION_CODES.S)
+
 class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     View.OnClickListener,View.OnTouchListener {
     private lateinit var scanButton: AppCompatButton
     private lateinit var lvBtDev: ListView
     private lateinit var lvList: ArrayList<ArrayList<String>>
     private lateinit var messageBytes: ByteArray
-    private var messageLen: Int = 0
     private lateinit var emptyTv: TextView
-    private var isEnabled = false
     private lateinit var intentToNextActivity: Intent
     private lateinit var bluetooth: Bluetooth
     private var lvAdapter: LvAdapter? = null
@@ -47,13 +37,14 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     companion object{
         var isDemo = false
     }
+    @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
 
-        bluetooth = Bluetooth.getBluetoothInstance( this@BluetoothActivity)
+        bluetooth = Bluetooth.getInstance( this@BluetoothActivity)
         bluetooth.bluetoothEnable()
         lvBtDev = findViewById<View>(R.id.lvDevices) as ListView
         lvBtDev.divider = null
@@ -68,7 +59,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         lvBtDev.adapter = lvAdapter
         lvBtDev.onItemClickListener = this
 
-        mPrefs = PreferenceManager.getDefaultSharedPreferences(this)
+        mPrefs = getSharedPreferences("my.app.packagename_preference",Context.MODE_PRIVATE)
         mEditor = mPrefs.edit()
 
         val name = mPrefs.getString("name", null)
@@ -93,9 +84,9 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
                     val o: Any = lvBtDev.getItemAtPosition(position)
                     var data = o.toString()
                     data = data.replace("\\[".toRegex(), "").replace("]".toRegex(), "")
-                    val dataSplited = data.split(", ", ignoreCase = true, limit = 2)
-                    val btName = dataSplited[0]
-                    val btAddress = dataSplited[1]
+                    val dataSplit = data.split(", ", ignoreCase = true, limit = 2)
+                    val btName = dataSplit[0]
+                    val btAddress = dataSplit[1]
                     mEditor.putString("name", btName).commit()
                     mEditor.putString("address", btAddress).commit()
                     val t = BlueToothConnectThread(btAddress)
@@ -163,21 +154,21 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         override fun run() {
             val status: Boolean = bluetooth.connectToThisDevice(btAddress)
             if (!status) {
-                runOnUiThread(Runnable {
+                runOnUiThread {
                     Toast.makeText(
                         applicationContext,
                         "Failed to connect",
                         Toast.LENGTH_SHORT
                     ).show()
-                })
+                }
             } else {
-                runOnUiThread(Runnable {
+                runOnUiThread {
                     Toast.makeText(
                         applicationContext,
                         "Connected",
                         Toast.LENGTH_SHORT
                     ).show()
-                })
+                }
                 intentToNextActivity = Intent(
                     applicationContext, MonitorActivity::class.java
                 )
@@ -287,7 +278,10 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     }
 
 
-    private val runnable = Runnable {isDemo = isDemo.not() ; startActivity(Intent(this.applicationContext,MonitorActivity::class.java))}
+    private val runnable = Runnable {
+        isDemo = isDemo.not()
+        startActivity(Intent(this.applicationContext,MonitorActivity::class.java))
+    }
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         if (event != null) {
             when (event.action) {
@@ -295,12 +289,14 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
                     v?.postDelayed(runnable, 3000)
                 }
                 MotionEvent.ACTION_UP -> {
+                    v?.performClick()
                     v?.handler?.removeCallbacks(runnable)
                 }
             }
         }
         return true
     }
+
 
 }
 

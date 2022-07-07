@@ -359,7 +359,7 @@ class CollisionWarningDrawer(blockPosition: Int, context: Context, canvasWidth: 
 }
 
 @SuppressLint("UseCompatLoadingForDrawables")
-@RequiresApi(Build.VERSION_CODES.R)
+
 class ImageDrawing(blockPosition: Int, context: Context, canvasWidth: Int, canvasHeight: Int) :
     DrawingObjects(blockPosition, context, canvasWidth, canvasHeight) {
     private val mCustomImage: Drawable
