@@ -1,4 +1,4 @@
-package com.example.warningsystem
+package com.example.warningsystem.datamanager
 
 import com.example.bluetooth.Bluetooth
 import kotlinx.coroutines.runBlocking

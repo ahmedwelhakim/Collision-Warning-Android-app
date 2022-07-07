@@ -40,13 +40,13 @@
         android:theme="@style/Theme.WarningSystem"
         tools:targetApi="31" >
         <activity
-            android:name=".MonitorActivity"
+            android:name=".activities.MonitorActivity"
             android:exported="false"
             android:screenOrientation="nosensor"
             />
 
         <activity
-            android:name=".BluetoothActivity"
+            android:name=".activities.BluetoothActivity"
             android:exported="true"
             android:screenOrientation="nosensor">
             <intent-filter>

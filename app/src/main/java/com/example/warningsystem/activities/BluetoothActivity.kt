@@ -1,4 +1,4 @@
-package com.example.warningsystem
+package com.example.warningsystem.activities
 
 
 import android.annotation.SuppressLint
@@ -17,6 +17,7 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.appcompat.widget.AppCompatButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.bluetooth.Bluetooth
+import com.example.warningsystem.R
 import kotlin.math.max
 
 
@@ -280,7 +281,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
 
     private val runnable = Runnable {
         isDemo = isDemo.not()
-        startActivity(Intent(this.applicationContext,MonitorActivity::class.java))
+        startActivity(Intent(this.applicationContext, MonitorActivity::class.java))
     }
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
         if (event != null) {

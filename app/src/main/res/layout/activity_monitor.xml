@@ -7,7 +7,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/gradient_drawable"
-    tools:context=".MonitorActivity">
+    tools:context=".activities.MonitorActivity">
     <TextView
         android:id="@+id/title_tv"
         android:layout_width="match_parent"
@@ -38,7 +38,7 @@
         android:contentDescription="TODO" />
 
 
-    <com.example.warningsystem.CanvasView
+    <com.example.warningsystem.canvas.CanvasView
         android:layout_width="match_parent"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@+id/divider"

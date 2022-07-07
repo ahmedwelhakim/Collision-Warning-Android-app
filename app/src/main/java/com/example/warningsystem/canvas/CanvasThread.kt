@@ -1,11 +1,13 @@
-package com.example.warningsystem
+package com.example.warningsystem.canvas
 
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
-import com.example.warningsystem.CanvasView.Companion.BluetoothHashMapReceive
 
+import com.example.warningsystem.canvas.CanvasView.Companion.BluetoothHashMapReceive
+import com.example.warningsystem.activities.MonitorActivity
+import com.example.warningsystem.drawingobjects.*
 
 
 class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight: Int) : Thread() {
@@ -15,16 +17,16 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
 
     private var running = true
-    private var drawingSpeed1: Speed
-    private var collisionWarning: CollisionWarningDrawer
-    private var imageDrawing: ImageDrawing
+    private var drawingSpeed1: Speedometer
+    private var collisionWarning: TTCMeter
+    private var imageDrawing: WarningSign
 
     ////--------------------------Debugging--Purpose------------------------------------------------
     private val paint = Paint()
     private var x = 70f
     private var y: Float =
-        ((view.height) / DrawingObjects.BLOCKS) * (DrawingObjects.BLOCKS) -
-                (DrawingObjects.BLOCKS - 2f) * (view.height) / DrawingObjects.BLOCKS
+        ((view.height) / BLOCKS) * (BLOCKS) -
+                (BLOCKS - 2f) * (view.height) / BLOCKS
     private val paintBg = Paint()
     private val blockHeight: Int
     private val blockWidth: Int
@@ -37,12 +39,12 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
     ////--------------------------------------------------------------------------------------------
     init {
 
-        drawingSpeed1 = Speed(0, view.context, canvasWidth, canvasHeight)
-        collisionWarning = CollisionWarningDrawer(1, view.context, canvasWidth, canvasHeight)
-        imageDrawing = ImageDrawing(2, view.context, canvasWidth, canvasHeight)
+        drawingSpeed1 = Speedometer(0, view.context, canvasWidth, canvasHeight)
+        collisionWarning = TTCMeter(1, view.context, canvasWidth, canvasHeight)
+        imageDrawing = WarningSign(2, view.context, canvasWidth, canvasHeight)
 
         //////-------------------------------Debugging Purpose-------------------------------
-        blockHeight = (view.height / DrawingObjects.BLOCKS).toInt()
+        blockHeight = (view.height / BLOCKS).toInt()
         blockWidth = view.width - 140
 
         left = x
@@ -68,30 +70,26 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                     synchronized(view.holder) {
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                         if (!(CanvasView.isDebugging) && c != null) {
-                            var speed = if (BluetoothHashMapReceive.getMapValue("speed").contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
+                            var speed = if (BluetoothHashMapReceive.getMapValue("speed")?.contains("[0-9]".toRegex())!!) (BluetoothHashMapReceive.getMapValue(
                                 "speed"
-                            ).toFloat() ) else 0f
+                            )?.toFloat() ) else 0f
                             isDataReceived = false
                             //var speed = 0f
-                            if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
+                           /* if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
                                 speed =
                                     MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
                                         .toFloat() * 3.6f // to Km/h
-                            }
+                            }*/
                             drawingSpeed1.textValue = speed.toString()
                             drawingSpeed1.draw(c)
 
-                            collisionWarning.textValue = BluetoothHashMapReceive.getMapValue("ttc")
+                            collisionWarning.textValue = BluetoothHashMapReceive.getMapValue("ttc")!!
                             collisionWarning.draw(c)
 
-                            imageDrawing.speed =
-                                if (drawingSpeed1.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
-                                    "speed"
-                                ).toFloat()) else -1f
-                            imageDrawing.ttc =
-                                if (collisionWarning.textValue.contains("[0-9]".toRegex())) (BluetoothHashMapReceive.getMapValue(
-                                    "ttc"
-                                ).toFloat()) else -1f
+                            imageDrawing.speed = speed!!
+
+                            imageDrawing.ttc = BluetoothHashMapReceive.getMapValue("ttc")!!.toFloat()
+
                             imageDrawing.draw(c)
                         } else {
                             // -------------------------------------------------------------------------

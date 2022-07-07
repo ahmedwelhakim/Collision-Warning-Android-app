@@ -1,4 +1,4 @@
-package com.example.warningsystem
+package com.example.warningsystem.compass
 
 
 import android.app.Activity
@@ -12,6 +12,8 @@ import android.util.Log
 import android.view.Surface
 import androidx.annotation.RequiresApi
 import com.example.bluetooth.Bluetooth
+import com.example.warningsystem.canvas.CanvasThread
+import com.example.warningsystem.activities.MonitorActivity
 import com.google.gson.GsonBuilder
 
 import kotlin.FloatArray
@@ -24,9 +26,9 @@ import kotlin.properties.Delegates
 
 class Compass(private val activity: Activity) : SensorEventListener {
 
-    private var compassLastMeasuredBearing: Float = 0f
-    private var currentMeasuredBearing by Delegates.notNull<Float>()
-    private val bluetooth:Bluetooth?
+    private var mCompassLastMeasuredBearing: Float = 0f
+    private var mCurrentMeasuredBearing by Delegates.notNull<Float>()
+    private val mBluetooth:Bluetooth?
     private var mSensorManager: SensorManager
     private var mGravity:FloatArray? = null
     private var mMagnetic:FloatArray? = null
@@ -37,7 +39,7 @@ class Compass(private val activity: Activity) : SensorEventListener {
 
     init {
         initSensors()
-        bluetooth=Bluetooth.getInstance(activity)
+        mBluetooth=Bluetooth.getInstance(activity)
         mSensorManager = activity.getSystemService(SENSOR_SERVICE) as SensorManager
     }
      fun startListener(){
@@ -101,32 +103,32 @@ class Compass(private val activity: Activity) : SensorEventListener {
                 )
 
                 /* Get measured value */
-                     currentMeasuredBearing = (results[0] * 180 / Math.PI).toFloat()
-                if (currentMeasuredBearing < 0) {
-                    currentMeasuredBearing += 360f
+                     mCurrentMeasuredBearing = (results[0] * 180 / Math.PI).toFloat()
+                if (mCurrentMeasuredBearing < 0) {
+                    mCurrentMeasuredBearing += 360f
                 }
 
                 /* Smooth values using a 'Low Pass Filter' */
 
 
-                currentMeasuredBearing =
-                    (currentMeasuredBearing
-                                + SMOOTHING_FACTOR_COMPASS * (currentMeasuredBearing - compassLastMeasuredBearing))
+                mCurrentMeasuredBearing =
+                    (mCurrentMeasuredBearing
+                                + SMOOTHING_FACTOR_COMPASS * (mCurrentMeasuredBearing - mCompassLastMeasuredBearing))
 
                 /*
                  * Update variables for next use (Required for Low Pass
                  * Filter)
-                 */compassLastMeasuredBearing = currentMeasuredBearing
+                 */mCompassLastMeasuredBearing = mCurrentMeasuredBearing
 
                 /*
                  * Write the heading in the BluetoothHashmap send
                  */
-                MonitorActivity.Companion.BluetoothHashMapSend.putMapValue("mHeading",currentMeasuredBearing.toString())
+                MonitorActivity.Companion.BluetoothHashMapSend.putMapValue("mHeading",mCurrentMeasuredBearing.toString())
                 CanvasThread.isDataReceived = true
                 val gsonMapBuilder = GsonBuilder()
                 val gsonObject = gsonMapBuilder.create()
                 val jsonString =gsonObject.toJson(MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap())
-                bluetooth?.send(jsonString.toByteArray())
+                mBluetooth?.send(jsonString.toByteArray())
             }
         }
 

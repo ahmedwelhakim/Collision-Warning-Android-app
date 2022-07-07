@@ -1,4 +1,4 @@
-package com.example.warningsystem
+package com.example.warningsystem.canvas
 
 import android.content.Context
 import android.graphics.*
@@ -6,6 +6,7 @@ import android.util.AttributeSet
 import android.util.Log
 import android.view.*
 import com.example.bluetooth.Bluetooth
+import com.example.warningsystem.activities.BluetoothActivity
 import kotlinx.coroutines.runBlocking
 import org.json.JSONException
 import org.json.JSONObject
@@ -41,7 +42,7 @@ class CanvasView : SurfaceView {
                 }
 
                 fun getMapValue(key: String) = runBlocking {
-                    return@runBlocking bluetoothHashMapReceive[key]!!
+                    return@runBlocking bluetoothHashMapReceive[key]
                 }
 
                 fun toSortedMap() = runBlocking {
@@ -96,8 +97,8 @@ class CanvasView : SurfaceView {
                 loopThread.setRunning(true)
                 loopThread.start()
 
-                BluetoothHashMapReceive.putMapValue("speed","0")
-                BluetoothHashMapReceive.putMapValue("ttc","100")
+                BluetoothHashMapReceive.putMapValue("speed", "0")
+                BluetoothHashMapReceive.putMapValue("ttc", "100")
 
                 var speed = 0f
                 val maxTTC=10f
@@ -142,8 +143,8 @@ class CanvasView : SurfaceView {
                                         .toFloat() * 3.6f // to Km/hr
                             }else speed = 0f*/
                             speed+=0.5f
-                            BluetoothHashMapReceive.putMapValue("speed",speed.toString())
-                            BluetoothHashMapReceive.putMapValue("ttc",ttc.toString())
+                            BluetoothHashMapReceive.putMapValue("speed", speed.toString())
+                            BluetoothHashMapReceive.putMapValue("ttc", ttc.toString())
                             CanvasThread.isDataReceived =true
                             ttc -= 0.03f
                             if (speed > 200) speed = 0f

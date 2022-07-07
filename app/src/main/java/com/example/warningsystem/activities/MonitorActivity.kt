@@ -1,4 +1,4 @@
-package com.example.warningsystem
+package com.example.warningsystem.activities
 
 import android.Manifest
 import android.app.Activity
@@ -12,6 +12,9 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import com.example.bluetooth.Bluetooth
+import com.example.warningsystem.canvas.CanvasThread
+import com.example.warningsystem.compass.Compass
+import com.example.warningsystem.R
 import com.google.android.gms.location.*
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
@@ -27,7 +30,7 @@ class MonitorActivity : AppCompatActivity(){
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationManager: LocationManager
     private lateinit var bluetooth:Bluetooth
-    private lateinit var compass:Compass
+    private lateinit var compass: Compass
 
 
     companion object {
@@ -97,10 +100,12 @@ class MonitorActivity : AppCompatActivity(){
         ) {
             ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                        LOCATION_PERMISSION_REQ_CODE)
+                        LOCATION_PERMISSION_REQ_CODE
+            )
             ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                LOCATION_PERMISSION_REQ_CODE)
+                LOCATION_PERMISSION_REQ_CODE
+            )
             return
         }
 
@@ -135,11 +140,11 @@ class MonitorActivity : AppCompatActivity(){
                 val lonAccuracy = locationResult.lastLocation?.accuracy
                 val speedAccuracy = locationResult.lastLocation?.speedAccuracyMetersPerSecond
 
-                BluetoothHashMapSend.putMapValue("mLat",lat.toString())
-                BluetoothHashMapSend.putMapValue("mLon",lon.toString())
-                BluetoothHashMapSend.putMapValue("mSpeed",speed.toString())
-                BluetoothHashMapSend.putMapValue("mSpeedAccuracy",speedAccuracy.toString())
-                BluetoothHashMapSend.putMapValue("mGpsAccuracy",lonAccuracy.toString())
+                BluetoothHashMapSend.putMapValue("mLat", lat.toString())
+                BluetoothHashMapSend.putMapValue("mLon", lon.toString())
+                BluetoothHashMapSend.putMapValue("mSpeed", speed.toString())
+                BluetoothHashMapSend.putMapValue("mSpeedAccuracy", speedAccuracy.toString())
+                BluetoothHashMapSend.putMapValue("mGpsAccuracy", lonAccuracy.toString())
                 CanvasThread.isDataReceived = true
 
                 val gsonMapBuilder =GsonBuilder()
@@ -163,10 +168,12 @@ class MonitorActivity : AppCompatActivity(){
         ) {
             ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_FINE_LOCATION),
-                LOCATION_PERMISSION_REQ_CODE)
+                LOCATION_PERMISSION_REQ_CODE
+            )
             ActivityCompat.requestPermissions(this,
                 arrayOf(Manifest.permission.ACCESS_COARSE_LOCATION),
-                LOCATION_PERMISSION_REQ_CODE)
+                LOCATION_PERMISSION_REQ_CODE
+            )
             return
         }
         fusedLocationClient.requestLocationUpdates(
