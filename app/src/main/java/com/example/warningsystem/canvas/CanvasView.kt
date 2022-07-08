@@ -7,7 +7,7 @@ import android.util.Log
 import android.view.*
 import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.activities.BluetoothActivity
-import kotlinx.coroutines.runBlocking
+import com.example.warningsystem.datamanager.DataManager
 import org.json.JSONException
 import org.json.JSONObject
 import java.lang.Thread.sleep
@@ -28,31 +28,7 @@ class CanvasView : SurfaceView {
 
 
     companion object {
-
-
         var isDebugging = false
-        private val bluetoothHashMapReceive: HashMap<String, String> = HashMap()
-
-        class BluetoothHashMapReceive {
-
-            companion object {
-                fun putMapValue(key: String, value: String) = runBlocking {
-                    bluetoothHashMapReceive[key] = value
-
-                }
-
-                fun getMapValue(key: String) = runBlocking {
-                    return@runBlocking bluetoothHashMapReceive[key]
-                }
-
-                fun toSortedMap() = runBlocking {
-                    return@runBlocking bluetoothHashMapReceive.toSortedMap()
-                }
-
-            }
-
-        }
-
     }
 
     private lateinit var loopThread: CanvasThread
@@ -97,8 +73,8 @@ class CanvasView : SurfaceView {
                 loopThread.setRunning(true)
                 loopThread.start()
 
-                BluetoothHashMapReceive.putMapValue("speed", "0")
-                BluetoothHashMapReceive.putMapValue("ttc", "100")
+                DataManager.putMapValue("speed", "0")
+                DataManager.putMapValue("ttc", "100")
 
                 var speed = 0f
                 val maxTTC=10f
@@ -130,7 +106,7 @@ class CanvasView : SurfaceView {
                                 while (iteratorObj.hasNext()) {
                                     keyName = iteratorObj.next()
                                     valueName = jsonResponse.getString(keyName)
-                                    bluetoothHashMapReceive[keyName] = valueName
+                                    DataManager.putMapValue(keyName,valueName)
                                 }
                             }
 
@@ -143,8 +119,8 @@ class CanvasView : SurfaceView {
                                         .toFloat() * 3.6f // to Km/hr
                             }else speed = 0f*/
                             speed+=0.5f
-                            BluetoothHashMapReceive.putMapValue("speed", speed.toString())
-                            BluetoothHashMapReceive.putMapValue("ttc", ttc.toString())
+                            DataManager.putMapValue("speed", speed.toString())
+                            DataManager.putMapValue("ttc", ttc.toString())
                             CanvasThread.isDataReceived =true
                             ttc -= 0.03f
                             if (speed > 200) speed = 0f

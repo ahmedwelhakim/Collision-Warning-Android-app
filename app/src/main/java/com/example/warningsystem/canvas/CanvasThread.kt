@@ -4,9 +4,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
-
-import com.example.warningsystem.canvas.CanvasView.Companion.BluetoothHashMapReceive
-import com.example.warningsystem.activities.MonitorActivity
+import com.example.warningsystem.datamanager.DataManager
 import com.example.warningsystem.drawingobjects.*
 
 
@@ -60,6 +58,8 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
     override fun run() {
         var c: Canvas? = null
+        var ttc:Float
+        var speed:Float
         while (running) {
 
 
@@ -70,25 +70,19 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                     synchronized(view.holder) {
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                         if (!(CanvasView.isDebugging) && c != null) {
-                            var speed = if (BluetoothHashMapReceive.getMapValue("speed")?.contains("[0-9]".toRegex())!!) (BluetoothHashMapReceive.getMapValue(
-                                "speed"
-                            )?.toFloat() ) else 0f
+                            speed = DataManager.getMapValueAsFloat("speed")
                             isDataReceived = false
-                            //var speed = 0f
-                           /* if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
-                                speed =
-                                    MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
-                                        .toFloat() * 3.6f // to Km/h
-                            }*/
+
                             drawingSpeed1.textValue = speed.toString()
                             drawingSpeed1.draw(c)
 
-                            collisionWarning.textValue = BluetoothHashMapReceive.getMapValue("ttc")!!
+                            ttc = DataManager.getMapValueAsFloat("ttc")
+                            collisionWarning.ttc = ttc
                             collisionWarning.draw(c)
 
-                            imageDrawing.speed = speed!!
+                            imageDrawing.speed = speed
 
-                            imageDrawing.ttc = BluetoothHashMapReceive.getMapValue("ttc")!!.toFloat()
+                            imageDrawing.ttc = ttc
 
                             imageDrawing.draw(c)
                         } else {
@@ -126,11 +120,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
         c.drawRect(x, y, (x + blockWidth), y + (bottom - top), paintBg)
         x += 50
         y += 100
-        for (i in BluetoothHashMapReceive.toSortedMap()) {
-            c.drawText("${i.key} = ${i.value}", x, y + 50, paint)
-            y += paint.textSize * 1.5f
-        }
-        for (i in MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap()) {
+        for (i in DataManager.getSortedMap()) {
             c.drawText("${i.key} = ${i.value}", x, y + 50, paint)
             y += paint.textSize * 1.5f
         }

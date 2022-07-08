@@ -14,7 +14,7 @@ import androidx.annotation.RequiresApi
 import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.canvas.CanvasThread
 import com.example.warningsystem.activities.MonitorActivity
-import com.google.gson.GsonBuilder
+import com.example.warningsystem.datamanager.DataManager
 
 import kotlin.FloatArray
 import kotlin.Int
@@ -52,7 +52,8 @@ class Compass(private val activity: Activity) : SensorEventListener {
         mSensorManager.unregisterListener(this,mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD))
         mSensorManager.unregisterListener(this,mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY))
     }
-    @RequiresApi(Build.VERSION_CODES.S)
+
+    @RequiresApi(Build.VERSION_CODES.R)
     override fun onSensorChanged(event: SensorEvent?) {
 
 
@@ -123,12 +124,9 @@ class Compass(private val activity: Activity) : SensorEventListener {
                 /*
                  * Write the heading in the BluetoothHashmap send
                  */
-                MonitorActivity.Companion.BluetoothHashMapSend.putMapValue("mHeading",mCurrentMeasuredBearing.toString())
+                DataManager.putMapValue("heading",mCurrentMeasuredBearing.toString())
                 CanvasThread.isDataReceived = true
-                val gsonMapBuilder = GsonBuilder()
-                val gsonObject = gsonMapBuilder.create()
-                val jsonString =gsonObject.toJson(MonitorActivity.Companion.BluetoothHashMapSend.toSortedMap())
-                mBluetooth?.send(jsonString.toByteArray())
+                DataManager.sendDataWithBluetooth()
             }
         }
 

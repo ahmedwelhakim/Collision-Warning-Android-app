@@ -30,7 +30,7 @@ class TTCMeter (blockPosition: Int, context: Context, canvasWidth: Int, canvasHe
     private var g: Float = 0f
     private var strokePaint: Paint = Paint()
     private val colorOffset = 10
-    private var ttc = 10f
+    var ttc = 10f
 
     init {
         // Title initialization---------------------------------------------------------------------
@@ -87,7 +87,6 @@ class TTCMeter (blockPosition: Int, context: Context, canvasWidth: Int, canvasHe
         super.draw(c)
 
         c?.drawText(titleText, titleX, titleY, titlePaint)
-        ttc = textValue.toFloat()
         ttc = min(MAX_TTC,ttc)
         ttc = max(0f,ttc)
 

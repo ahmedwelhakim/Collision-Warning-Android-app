@@ -8,19 +8,13 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Bundle
 import android.os.Looper
-import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
-import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.canvas.CanvasThread
 import com.example.warningsystem.compass.Compass
 import com.example.warningsystem.R
+import com.example.warningsystem.datamanager.DataManager
 import com.google.android.gms.location.*
-import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import com.google.gson.annotations.SerializedName
-import kotlinx.coroutines.runBlocking
-
 
 
 class MonitorActivity : AppCompatActivity(){
@@ -29,7 +23,6 @@ class MonitorActivity : AppCompatActivity(){
     private lateinit var fusedLocationClient: FusedLocationProviderClient
     private lateinit var locationRequest: LocationRequest
     private lateinit var locationManager: LocationManager
-    private lateinit var bluetooth:Bluetooth
     private lateinit var compass: Compass
 
 
@@ -42,30 +35,6 @@ class MonitorActivity : AppCompatActivity(){
         const val MAX_TIME_INTERVAL = 100
         const val MIN_TIME_INTERVAL = 50
 
-        private val bluetoothHashMapSend: HashMap<String, String> = HashMap()
-        class BluetoothHashMapSend {
-
-            companion object {
-                fun putMapValue(key: String, value: String) = runBlocking {
-                    bluetoothHashMapSend[key] = value
-
-                }
-
-                fun getMapValue(key: String) = runBlocking {
-                    return@runBlocking bluetoothHashMapSend[key] as String
-                }
-
-                fun toSortedMap() = runBlocking {
-                    return@runBlocking bluetoothHashMapSend.toSortedMap()
-                }
-                fun containsKey(k:String):Boolean = runBlocking {
-                    return@runBlocking bluetoothHashMapSend.containsKey(k)
-                }
-
-            }
-
-        }
-
 
     }
 
@@ -77,7 +46,6 @@ class MonitorActivity : AppCompatActivity(){
         activityInstance = this
 
 
-        bluetooth = Bluetooth.getInstance( this@MonitorActivity)
         fusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
 
         locationManager = getSystemService(Context.LOCATION_SERVICE) as LocationManager
@@ -118,40 +86,33 @@ class MonitorActivity : AppCompatActivity(){
                     val speed: Float = location.speed
                     val heading: Float = location.bearing
 
-                    data class JsonDataParser(
-                        @SerializedName("mLon") val id: Double,
-                        @SerializedName("mLat") val name: Double,
-                        @SerializedName("mSpeed") val image: Float,
-                        @SerializedName("mHeading") val description: Float
-                    )
 
-                    val gson = Gson()
-                    val json = gson.toJson(JsonDataParser(lon, lat, speed, heading))
-                    Log.d("Location", json)
-                    bluetooth.send(json.toByteArray())
+                    DataManager.putMapValue("longitude",lon.toString())
+                    DataManager.putMapValue("latitude",lat.toString())
+                    DataManager.putMapValue("speed",speed.toString())
+                    DataManager.putMapValue("heading",heading.toString())
                 }
             }
 
         locationCallback = object : LocationCallback() {
             override fun onLocationResult(locationResult: LocationResult) {
+
                 val lon:Double = locationResult.lastLocation?.longitude!!
                 val lat:Double = locationResult.lastLocation?.latitude!!
                 val speed:Float = locationResult.lastLocation?.speed!!
                 val lonAccuracy = locationResult.lastLocation?.accuracy
                 val speedAccuracy = locationResult.lastLocation?.speedAccuracyMetersPerSecond
-
-                BluetoothHashMapSend.putMapValue("mLat", lat.toString())
-                BluetoothHashMapSend.putMapValue("mLon", lon.toString())
-                BluetoothHashMapSend.putMapValue("mSpeed", speed.toString())
-                BluetoothHashMapSend.putMapValue("mSpeedAccuracy", speedAccuracy.toString())
-                BluetoothHashMapSend.putMapValue("mGpsAccuracy", lonAccuracy.toString())
+                val heading = locationResult.lastLocation?.bearing
+                DataManager.putMapValue("longitude",lon.toString())
+                DataManager.putMapValue("latitude",lat.toString())
+                DataManager.putMapValue("speed",speed.toString())
+                DataManager.putMapValue("heading",heading.toString())
+                DataManager.putMapValue("speedAccuracy", speedAccuracy.toString())
+                DataManager.putMapValue("gpsAccuracy", lonAccuracy.toString())
                 CanvasThread.isDataReceived = true
 
-                val gsonMapBuilder =GsonBuilder()
-                val gsonObject = gsonMapBuilder.create()
-                val jsonString =gsonObject.toJson(BluetoothHashMapSend.toSortedMap())
-                bluetooth.send(jsonString.toByteArray())
-                Log.d("MonitorActivity",jsonString)
+                DataManager.sendDataWithBluetooth()
+
             }
 
         }
