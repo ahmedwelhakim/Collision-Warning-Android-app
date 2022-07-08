@@ -1,4 +1,4 @@
-package com.example.warningsystem.compass
+package com.example.warningsystem.sensors.compass
 
 
 import android.app.Activity
@@ -10,10 +10,10 @@ import android.hardware.SensorManager
 import android.os.Build
 import android.util.Log
 import android.view.Surface
+import com.example.warningsystem.constants.*
 import androidx.annotation.RequiresApi
 import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.canvas.CanvasThread
-import com.example.warningsystem.activities.MonitorActivity
 import com.example.warningsystem.datamanager.DataManager
 
 import kotlin.FloatArray
@@ -43,10 +43,10 @@ class Compass(private val activity: Activity) : SensorEventListener {
         mSensorManager = activity.getSystemService(SENSOR_SERVICE) as SensorManager
     }
      fun startListener(){
-        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), MonitorActivity.MIN_TIME_INTERVAL *1000,
-            MonitorActivity.MAX_TIME_INTERVAL *1000)
-         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), MonitorActivity.MIN_TIME_INTERVAL *1000,
-             MonitorActivity.MAX_TIME_INTERVAL *1000)
+        mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD), MIN_TIME_INTERVAL *1000,
+            MAX_TIME_INTERVAL *1000)
+         mSensorManager.registerListener(this, mSensorManager.getDefaultSensor(Sensor.TYPE_GRAVITY), MIN_TIME_INTERVAL *1000,
+             MAX_TIME_INTERVAL *1000)
     }
     fun stopListener(){
         mSensorManager.unregisterListener(this,mSensorManager.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD))
@@ -124,7 +124,7 @@ class Compass(private val activity: Activity) : SensorEventListener {
                 /*
                  * Write the heading in the BluetoothHashmap send
                  */
-                DataManager.putMapValue("heading",mCurrentMeasuredBearing.toString())
+                DataManager.putMapValue("compassHeading",mCurrentMeasuredBearing.toString())
                 CanvasThread.isDataReceived = true
                 DataManager.sendDataWithBluetooth()
             }

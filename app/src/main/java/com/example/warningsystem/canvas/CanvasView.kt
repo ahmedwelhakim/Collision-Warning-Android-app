@@ -8,6 +8,7 @@ import android.view.*
 import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.activities.BluetoothActivity
 import com.example.warningsystem.datamanager.DataManager
+import com.example.warningsystem.states.States
 import org.json.JSONException
 import org.json.JSONObject
 import java.lang.Thread.sleep
@@ -27,9 +28,6 @@ class CanvasView : SurfaceView {
     )
 
 
-    companion object {
-        var isDebugging = false
-    }
 
     private lateinit var loopThread: CanvasThread
     private var viewWidth by Delegates.notNull<Int>()
@@ -81,7 +79,7 @@ class CanvasView : SurfaceView {
                 var ttc = maxTTC
 
                 thread {
-                    if (!BluetoothActivity.isDemo) {
+                    if (!States.isDemo) {
                         var tmp: Pair<ByteArray, Boolean>?
                         var jsonResponse: JSONObject
                         var iteratorObj: Iterator<String>
@@ -112,7 +110,7 @@ class CanvasView : SurfaceView {
 
                         }
                     } else {
-                        while (BluetoothActivity.isDemo) {
+                        while (States.isDemo) {
                             /*if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
                                 speed =
                                     MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
@@ -147,7 +145,7 @@ class CanvasView : SurfaceView {
     private val runnable =
         Runnable {
             //if (!BluetoothActivity.isDemo)
-         isDebugging = isDebugging.not()
+         States.isDebugging = States.isDebugging.not()
         }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -3,6 +3,7 @@ package com.example.warningsystem.drawingobjects
 
 import android.content.Context
 import android.graphics.*
+import com.example.warningsystem.constants.*
 import java.util.*
 import kotlin.math.max
 import kotlin.math.min

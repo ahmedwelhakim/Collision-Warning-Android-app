@@ -4,8 +4,10 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.graphics.PorterDuff
+import com.example.warningsystem.constants.*
 import com.example.warningsystem.datamanager.DataManager
 import com.example.warningsystem.drawingobjects.*
+import com.example.warningsystem.states.States
 
 
 class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight: Int) : Thread() {
@@ -69,7 +71,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
                     synchronized(view.holder) {
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-                        if (!(CanvasView.isDebugging) && c != null) {
+                        if (!(States.isDebugging) && c != null) {
                             speed = DataManager.getMapValueAsFloat("speed")
                             isDataReceived = false
 

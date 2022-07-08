@@ -18,6 +18,8 @@ import androidx.appcompat.widget.AppCompatButton
 import androidx.constraintlayout.widget.ConstraintLayout
 import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.R
+import com.example.warningsystem.adapters.BluetoothListviewAdapter
+import com.example.warningsystem.states.States
 import kotlin.math.max
 
 
@@ -31,13 +33,12 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     private lateinit var emptyTv: TextView
     private lateinit var intentToNextActivity: Intent
     private lateinit var bluetooth: Bluetooth
-    private var lvAdapter: LvAdapter? = null
+    private var lvAdapter: BluetoothListviewAdapter? = null
     private lateinit var mPrefs: SharedPreferences
     private lateinit var mEditor: SharedPreferences.Editor
     private lateinit var mMainView:ConstraintLayout
-    companion object{
-        var isDemo = false
-    }
+
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -51,7 +52,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         lvBtDev.divider = null
         lvBtDev.dividerHeight = 0
         lvList = ArrayList(ArrayList())
-        lvAdapter = LvAdapter(applicationContext, lvList)
+        lvAdapter = BluetoothListviewAdapter(applicationContext, lvList)
         scanButton = findViewById(R.id.scan_bt)
         scanButton.setOnClickListener(this)
         messageBytes = ByteArray(Bluetooth.MAX_RCV_BUFFER_LENGTH)
@@ -236,51 +237,11 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     }
 
 
-    class LvAdapter(context: Context, data: ArrayList<ArrayList<String>>) :
-        BaseAdapter() {
-        private var context: Context
-        private var data: ArrayList<ArrayList<String>>
-        private var inflater: LayoutInflater? = null
 
-        init {
-            // TODO Auto-generated constructor stub
-            this.context = context
-            this.data = data
-            inflater = context
-                .getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater?
-        }
-
-        override fun getCount(): Int {
-            // TODO Auto-generated method stub
-            return data.size
-        }
-
-        override fun getItem(position: Int): Any {
-            // TODO Auto-generated method stub
-            return data[position]
-        }
-
-        override fun getItemId(position: Int): Long {
-            // TODO Auto-generated method stub
-            return position.toLong()
-        }
-
-        @SuppressLint("InflateParams")
-        override fun getView(position: Int, convertView: View?, parent: ViewGroup): View {
-            // TODO Auto-generated method stub
-            var vi = convertView
-            if (vi == null) vi = inflater?.inflate(R.layout.list_item, null)
-            val tvBtName = vi?.findViewById<View>(R.id.bt_name) as TextView
-            tvBtName.text = data[position][0]
-            val tvBtAddress = vi.findViewById<View>(R.id.bt_address) as TextView
-            tvBtAddress.text = data[position][1]
-            return vi
-        }
-    }
 
 
     private val runnable = Runnable {
-        isDemo = isDemo.not()
+        States.isDemo = States.isDemo.not()
         startActivity(Intent(this.applicationContext, MonitorActivity::class.java))
     }
     override fun onTouch(v: View?, event: MotionEvent?): Boolean {
@@ -297,8 +258,6 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         }
         return true
     }
-
-
 }
 
 

@@ -8,6 +8,7 @@ import android.graphics.drawable.BitmapDrawable
 import android.graphics.drawable.Drawable
 import androidx.appcompat.content.res.AppCompatResources
 import com.example.warningsystem.R
+import com.example.warningsystem.constants.*
 import kotlin.math.max
 import kotlin.math.min
 

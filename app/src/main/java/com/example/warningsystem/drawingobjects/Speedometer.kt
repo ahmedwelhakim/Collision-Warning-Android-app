@@ -2,6 +2,7 @@ package com.example.warningsystem.drawingobjects
 
 import android.content.Context
 import android.graphics.*
+import com.example.warningsystem.constants.*
 import kotlin.math.min
 import kotlin.properties.Delegates
 
