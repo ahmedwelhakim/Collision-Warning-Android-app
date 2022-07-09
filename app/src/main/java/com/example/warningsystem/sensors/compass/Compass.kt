@@ -15,6 +15,7 @@ import androidx.annotation.RequiresApi
 import com.example.bluetooth.Bluetooth
 import com.example.warningsystem.canvas.CanvasThread
 import com.example.warningsystem.datamanager.DataManager
+import com.example.warningsystem.states.States
 
 import kotlin.FloatArray
 import kotlin.Int
@@ -125,7 +126,7 @@ class Compass(private val activity: Activity) : SensorEventListener {
                  * Write the heading in the BluetoothHashmap send
                  */
                 DataManager.putMapValue("compassHeading",mCurrentMeasuredBearing.toString())
-                CanvasThread.isDataReceived = true
+                States.isDataReceived = true
                 DataManager.sendDataWithBluetooth()
             }
         }

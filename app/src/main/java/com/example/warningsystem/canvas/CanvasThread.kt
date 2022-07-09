@@ -10,10 +10,9 @@ import com.example.warningsystem.drawingobjects.*
 import com.example.warningsystem.states.States
 
 
+
 class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight: Int) : Thread() {
-    companion object {
-        var isDataReceived = true
-    }
+
 
 
     private var running = true
@@ -65,7 +64,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
         while (running) {
 
 
-            if (isDataReceived) {
+            if (States.isDataReceived) {
                 try {
                     c = view.holder.lockCanvas()
 
@@ -73,7 +72,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                         c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
                         if (!(States.isDebugging) && c != null) {
                             speed = DataManager.getMapValueAsFloat("speed")
-                            isDataReceived = false
+                            States.isDataReceived = false
 
                             drawingSpeed1.textValue = speed.toString()
                             drawingSpeed1.draw(c)
@@ -91,7 +90,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                             // -------------------------------------------------------------------------
                             // debugging text drawing should be removed lately
                             // -------------------------------------------------------------------------
-                            isDataReceived = false
+                            States.isDataReceived = false
                             drawDebugTexts(c)
                             /////---------------------------------------------------------------------------
                         }

@@ -8,6 +8,7 @@ import androidx.core.app.ActivityCompat
 import com.example.warningsystem.canvas.CanvasThread
 import com.example.warningsystem.constants.*
 import com.example.warningsystem.datamanager.DataManager
+import com.example.warningsystem.states.States
 import com.google.android.gms.location.*
 
 
@@ -38,7 +39,7 @@ class Location(private val activity: Activity) {
                 DataManager.putMapValue("gpsHeading",heading.toString())
                 DataManager.putMapValue("speedAccuracy", speedAccuracy.toString())
                 DataManager.putMapValue("gpsAccuracy", lonAccuracy.toString())
-                CanvasThread.isDataReceived = true
+                States.isDataReceived = true
                 DataManager.sendDataWithBluetooth()
 
             }

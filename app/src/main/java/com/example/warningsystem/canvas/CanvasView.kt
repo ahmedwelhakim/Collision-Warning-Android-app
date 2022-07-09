@@ -92,13 +92,13 @@ class CanvasView : SurfaceView {
                                 jsonResponse = try {
                                     JSONObject(String(tmp.first))
                                 } catch (ex: JSONException) {
-                                    CanvasThread.isDataReceived = false
+                                    States.isDataReceived = false
                                     JSONObject("{}")
                                 }
 
                                 iteratorObj = jsonResponse.keys()
                                 if (iteratorObj.hasNext()) {
-                                    CanvasThread.isDataReceived = true
+                                    States.isDataReceived = true
                                 }
                                 // write the data in the Global BluetoothHashMapReceive
                                 while (iteratorObj.hasNext()) {
@@ -119,11 +119,10 @@ class CanvasView : SurfaceView {
                             speed+=0.5f
                             DataManager.putMapValue("speed", speed.toString())
                             DataManager.putMapValue("ttc", ttc.toString())
-                            CanvasThread.isDataReceived =true
+                            States.isDataReceived =true
                             ttc -= 0.03f
                             if (speed > 200) speed = 0f
                             if (ttc < 0) ttc = maxTTC
-                            CanvasThread.isDataReceived = true
                             sleep(30)
                         }
                     }
