@@ -1,23 +1,44 @@
 package com.example.warningsystem.datamanager
 
 import com.example.bluetooth.Bluetooth
+import com.example.warningsystem.constants.MAX_SPEED
+import com.example.warningsystem.constants.MAX_TTC
+import com.example.warningsystem.states.States
 import com.google.gson.Gson
 import kotlinx.coroutines.runBlocking
 import org.json.JSONException
 import org.json.JSONObject
+import java.io.IOException
+import java.lang.Float.min
 import kotlin.concurrent.thread
+import kotlin.math.max
 
 object DataManager  {
     private val mHashMap:HashMap<String,String> = HashMap()
-
+    private var btReadingThread = BluetoothReadingThread()
+    private var startBtReading = false
+    private var startDemo = false
+    private var demoThread = DemoThread()
     init{
         mHashMap["speed"] = "0"
         mHashMap["ttc"] = "100"
         mHashMap["speedLimit"] = "100"
-        runBluetoothReadingThread()
     }
 
-
+    fun start(){
+        if(States.isDemo){
+            startDemoThread()
+        }else{
+            startBluetoothReading()
+        }
+    }
+    fun stop(){
+        if(States.isDemo){
+            stopDemoThread()
+        }else{
+            stopBluetoothReading()
+        }
+    }
     fun putMapValue(key: String, value: String) = runBlocking {
         mHashMap[key] = value
     }
@@ -53,9 +74,44 @@ object DataManager  {
     private fun getJSONDataAsByteArray():ByteArray{
         return Gson().toJson(mHashMap).toString().toByteArray()
     }
-    private fun runBluetoothReadingThread(){
-        // Reading received data from Bluetooth
-        thread {
+
+    private fun startBluetoothReading(){
+        if(!btReadingThread.isAlive) {
+            startBtReading = true
+            btReadingThread = BluetoothReadingThread()
+            btReadingThread.start()
+        }
+    }
+    private fun stopBluetoothReading(){
+        if(btReadingThread.isAlive) {
+            startBtReading = false
+            try {
+                btReadingThread.join()
+            } catch (e: InterruptedException) {
+                //
+            }
+        }
+    }
+    private fun startDemoThread(){
+        if(!demoThread.isAlive) {
+            startDemo = true
+            demoThread = DemoThread()
+            demoThread.start()
+        }
+    }
+    private fun stopDemoThread(){
+        if(demoThread.isAlive) {
+            startDemo = false
+            try {
+                demoThread.join()
+            } catch (e: InterruptedException) {
+                //
+            }
+        }
+    }
+    private class BluetoothReadingThread : Thread(){
+
+        override fun run() {
             var receivedData:ByteArray
             var receivedStatus:Boolean
             var jsonResponse: JSONObject
@@ -63,7 +119,8 @@ object DataManager  {
             var keyName: String
             var valueName: String
             val bluetooth:Bluetooth = Bluetooth.getInstanceWithoutArg()!!
-            while (bluetooth.isConnected()) {
+
+            while (startBtReading && States.isConnected) {
                 receivedData = bluetooth.read().first
                 receivedStatus = bluetooth.read().second
                 if ( receivedStatus) {
@@ -80,6 +137,22 @@ object DataManager  {
                         putMapValue(keyName,valueName)
                     }
                 }
+            }
+        }
+    }
+    private class DemoThread : Thread(){
+
+        override fun run() {
+            var speed = 0f
+            var ttc = MAX_TTC
+            while (startDemo && States.isDemo){
+                mHashMap["speed"] = speed.toString()
+                mHashMap["ttc"] = ttc.toString()
+                speed += 0.5f
+                ttc -= 0.05f
+                ttc = if(ttc<0) MAX_TTC else ttc
+                speed =if(speed> MAX_SPEED)0f else speed
+                sleep(50)
             }
         }
     }

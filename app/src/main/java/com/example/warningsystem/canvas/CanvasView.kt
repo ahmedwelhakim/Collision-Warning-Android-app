@@ -29,106 +29,37 @@ class CanvasView : SurfaceView {
 
 
 
-    private lateinit var loopThread: CanvasThread
+    private  var loopThread = CanvasThread(this@CanvasView,width, height- y.toInt())
     private var viewWidth by Delegates.notNull<Int>()
     private var viewHeight by Delegates.notNull<Int>()
-
+    private var isFirstTime = true
 
     init {
         this.setBackgroundColor(Color.TRANSPARENT)
         this.setZOrderOnTop(true)
+
+
         holder.setFormat(PixelFormat.TRANSPARENT)
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceDestroyed(holder: SurfaceHolder) {
-                var retry = true
-                loopThread.setRunning(false)
-                while (retry) {
-                    try {
-                        loopThread.join()
-                        retry = false
-                    } catch (e: InterruptedException) {
-                       // TODO()
-                    }
-                }
+                stopLoopThread()
             }
 
 
             override fun surfaceCreated(holder: SurfaceHolder) {
-
-                val screenHeight = height
-                val screenWidth = width
-                val param = layoutParams
-                viewWidth = screenWidth
-                viewHeight = screenHeight - y.toInt()
-                param.height = viewHeight
-                layoutParams = param
-                Log.d(
-                    "CanvasView",
-                    "canvas view: viewHeight = $viewHeight,viewWidth = $viewWidth"
-                )
+                if(isFirstTime) {
+                    setCanvasHeight()
+                    isFirstTime = false
+                }
                 setBackgroundColor(Color.TRANSPARENT)
-                loopThread = CanvasThread(this@CanvasView, screenWidth, viewHeight)
+                if(loopThread.isAlive)
+                    stopLoopThread()
+                loopThread = CanvasThread(this@CanvasView, viewWidth, viewHeight)
                 loopThread.setRunning(true)
                 loopThread.start()
 
-                DataManager.putMapValue("speed", "0")
-                DataManager.putMapValue("ttc", "100")
 
-                var speed = 0f
-                val maxTTC=10f
-                var ttc = maxTTC
-
-                thread {
-                    if (!States.isDemo) {
-                        var tmp: Pair<ByteArray, Boolean>?
-                        var jsonResponse: JSONObject
-                        var iteratorObj: Iterator<String>
-                        var keyName: String
-                        var valueName: String
-                        val bluetooth = Bluetooth.getInstanceWithoutArg()
-                        while (true) {
-                            tmp = bluetooth!!.read()
-                            if ( tmp.second) {
-                                jsonResponse = try {
-                                    JSONObject(String(tmp.first))
-                                } catch (ex: JSONException) {
-                                    States.isDataReceived = false
-                                    JSONObject("{}")
-                                }
-
-                                iteratorObj = jsonResponse.keys()
-                                if (iteratorObj.hasNext()) {
-                                    States.isDataReceived = true
-                                }
-                                // write the data in the Global BluetoothHashMapReceive
-                                while (iteratorObj.hasNext()) {
-                                    keyName = iteratorObj.next()
-                                    valueName = jsonResponse.getString(keyName)
-                                    DataManager.putMapValue(keyName,valueName)
-                                }
-                            }
-
-                        }
-                    } else {
-                        while (States.isDemo) {
-                            /*if (MonitorActivity.Companion.BluetoothHashMapSend.containsKey("mSpeed")) {
-                                speed =
-                                    MonitorActivity.Companion.BluetoothHashMapSend.getMapValue("mSpeed")
-                                        .toFloat() * 3.6f // to Km/hr
-                            }else speed = 0f*/
-                            speed+=0.5f
-                            DataManager.putMapValue("speed", speed.toString())
-                            DataManager.putMapValue("ttc", ttc.toString())
-                            States.isDataReceived =true
-                            ttc -= 0.03f
-                            if (speed > 200) speed = 0f
-                            if (ttc < 0) ttc = maxTTC
-                            sleep(30)
-                        }
-                    }
-                }
             }
-
 
             override fun surfaceChanged(
                 holder: SurfaceHolder, format: Int,
@@ -140,6 +71,30 @@ class CanvasView : SurfaceView {
 
     }
 
+    private fun stopLoopThread(){
+        if(loopThread.isAlive) {
+            var retry = true
+            loopThread.setRunning(false)
+            while (retry) {
+                try {
+                    loopThread.join()
+                    retry = false
+                } catch (e: InterruptedException) {
+                    //
+                }
+            }
+        }
+    }
+
+    private fun setCanvasHeight(){
+        val screenHeight = height
+        val screenWidth = width
+        val param = layoutParams
+        viewWidth = screenWidth
+        viewHeight = screenHeight - y.toInt()
+        param.height = viewHeight
+        layoutParams = param
+    }
     /////////////----------------------------------------for Debugging Purpose-------------------------
     private val runnable =
         Runnable {

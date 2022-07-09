@@ -80,11 +80,11 @@ class WarningSign(blockPosition: Int, context: Context, canvasWidth: Int, canvas
             tGreen = tRedGreen.second
 
 
-            val offset = 30
+
             if (tRed > sRed ||  tGreen<sGreen)
-                changeColor(mBitmap, myRgb(max(tRed-offset,0f), max(tGreen-offset,0f), 0f), mBitmap.width, mBitmap.height)
+                changeColor(mBitmap, myRgb(tRed, tGreen, 0f), mBitmap.width, mBitmap.height)
             else
-                changeColor(mBitmap, myRgb(max(sRed-offset,0f), max(sGreen-offset,0f), 0f), mBitmap.width, mBitmap.height)
+                changeColor(mBitmap, myRgb(sRed,sGreen,0f), mBitmap.width, mBitmap.height)
 
             c.drawBitmap(mDarkBitmap,mLeft+(bmWidthOffset/2f),mTop+(bmHeightOffset/2f),paint)
             c.drawBitmap(mShadowBitmap,mLeft+(bmWidthOffset/2f),mTop+(bmHeightOffset/2f),paint)

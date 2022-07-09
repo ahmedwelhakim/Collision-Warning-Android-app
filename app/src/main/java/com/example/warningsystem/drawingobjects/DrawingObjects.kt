@@ -32,9 +32,6 @@ abstract class DrawingObjects(
 
 
 
-    init {
-        constructorInit()
-    }
 
     init {
         textValuePaint.color = Color.WHITE
@@ -42,6 +39,7 @@ abstract class DrawingObjects(
         textValuePaint.strokeWidth = 1F
         textValuePaint.style = Paint.Style.FILL
         textValuePaint.textSize = 80F
+        constructorInit()
     }
 
     private fun constructorInit() {
