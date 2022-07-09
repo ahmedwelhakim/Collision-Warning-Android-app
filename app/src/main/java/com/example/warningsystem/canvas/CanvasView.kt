@@ -98,8 +98,7 @@ class CanvasView : SurfaceView {
     /////////////----------------------------------------for Debugging Purpose-------------------------
     private val runnable =
         Runnable {
-            //if (!BluetoothActivity.isDemo)
-         States.isDebugging = States.isDebugging.not()
+           States.toggleDebugMode()
         }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

@@ -16,40 +16,42 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
 
     private var running = true
-    private var drawingSpeed1: Speedometer
-    private var collisionWarning: TTCMeter
-    private var imageDrawing: WarningSign
+    private var monitorSpeedometerDrawing: Speedometer
+    private var ttcDrawing: TTCMeter
+    private var warningDrawing: WarningSign
+    private var speedometer:Speedometer
 
     ////--------------------------Debugging--Purpose------------------------------------------------
     private val paint = Paint()
     private var x = 70f
-    private var y: Float =
-        ((view.height) / BLOCKS) * (BLOCKS) -
-                (BLOCKS - 2f) * (view.height) / BLOCKS
+    private var y: Float = 0f
     private val paintBg = Paint()
-    private val blockHeight: Int
-    private val blockWidth: Int
-    private val left: Float
-    private val top: Float
-    private val bottom: Float
-    private val right: Float
-
-
+    private var blockHeight: Int =0
+    private var blockWidth: Int =0
+    private var left: Float = 0f
+    private var top: Float = 0f
+    private var bottom: Float = 0f
+    private var right: Float = 0f
+    private var ttc = 100f
+    private var speed = 0f
+    private var demoTTC = 100f
+    private var demoSpeed = 0f
+    private val blocks = 3.5f
+    private val speedometerBlocks = 2.7f
     ////--------------------------------------------------------------------------------------------
     init {
 
-        drawingSpeed1 = Speedometer(0, view.context, canvasWidth, canvasHeight)
-        collisionWarning = TTCMeter(1, view.context, canvasWidth, canvasHeight)
-        imageDrawing = WarningSign(2, view.context, canvasWidth, canvasHeight)
+        // for both Demo and Monitor Mode
+        monitorSpeedometerDrawing = Speedometer(0,blocks ,view.context, canvasWidth, canvasHeight)
+        ttcDrawing = TTCMeter(1,blocks ,view.context, canvasWidth, canvasHeight)
+        warningDrawing = WarningSign(2,blocks, view.context, canvasWidth, canvasHeight)
 
-        //////-------------------------------Debugging Purpose-------------------------------
-        blockHeight = (view.height / BLOCKS).toInt()
-        blockWidth = view.width - 140
+        // for speedometer Mode
+        speedometer =  Speedometer(0,speedometerBlocks ,view.context, canvasWidth, canvasHeight)
 
-        left = x
-        top = y
-        bottom = y + view.height
-        right = x + view.width
+        // for Debug Mode
+        debugInit()
+
     }
 
     fun setRunning(run: Boolean) {
@@ -59,8 +61,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
     override fun run() {
         var c: Canvas? = null
-        var ttc:Float
-        var speed:Float
+
         while (running) {
 
 
@@ -69,30 +70,22 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
                     c = view.holder.lockCanvas()
 
                     synchronized(view.holder) {
-                        c?.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-                        if (!(States.isDebugging) && c != null) {
-                            speed = DataManager.getMapValueAsFloat("speed")
-                            States.isDataReceived = false
+                        if (c != null) {
+                            c.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
+                            if (States.mode != States.Mode.DEBUG) {
+                                when (States.mode) {
+                                    States.Mode.DEMO -> demoMode(c)
+                                    States.Mode.MONITOR -> monitorMode(c)
+                                    States.Mode.SPEEDOMETER -> speedometerMode(c)
+                                    else -> {/* Do Nothing */}
+                                }
 
-                            drawingSpeed1.textValue = speed.toString()
-                            drawingSpeed1.draw(c)
+                            } else {
+                                // debugging text drawing
+                                States.isDataReceived = false
+                                drawDebugTexts(c)
 
-                            ttc = DataManager.getMapValueAsFloat("ttc")
-                            collisionWarning.ttc = ttc
-                            collisionWarning.draw(c)
-
-                            imageDrawing.speed = speed
-
-                            imageDrawing.ttc = ttc
-
-                            imageDrawing.draw(c)
-                        } else {
-                            // -------------------------------------------------------------------------
-                            // debugging text drawing should be removed lately
-                            // -------------------------------------------------------------------------
-                            States.isDataReceived = false
-                            drawDebugTexts(c)
-                            /////---------------------------------------------------------------------------
+                            }
                         }
                     }
                 } finally {
@@ -105,7 +98,61 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
         }
     }
 
+    private fun speedometerMode(c: Canvas) {
+        // update ------------------------------------------------
+        States.isDataReceived = false
+        speed = DataManager.getMapValueAsFloat("speed")
+        speedometer.textValue = speed.toString()
+        // Draw -------------------------------------------------
+        speedometer.draw(c)
 
+    }
+
+    private fun monitorMode(c:Canvas){
+
+        // update ------------------------------------------------
+        States.isDataReceived = false
+        speed = DataManager.getMapValueAsFloat("speed")
+        monitorSpeedometerDrawing.textValue = speed.toString()
+
+        ttc = DataManager.getMapValueAsFloat("ttc")
+        ttcDrawing.ttc = ttc
+
+        warningDrawing.speed = speed
+        warningDrawing.ttc = ttc
+
+        // Draw ---------------------------------------------------
+        ttcDrawing.draw(c)
+        monitorSpeedometerDrawing.draw(c)
+        warningDrawing.draw(c)
+    }
+    private fun demoMode(c:Canvas){
+
+        // update ------------------------------------------------
+        States.isDataReceived = false
+        demoSpeed = DataManager.getMapValueAsFloat("demoSpeed")
+        monitorSpeedometerDrawing.textValue = demoSpeed.toString()
+
+        demoTTC = DataManager.getMapValueAsFloat("demoTTC")
+        ttcDrawing.ttc = demoTTC
+
+        warningDrawing.speed = demoSpeed
+        warningDrawing.ttc = demoTTC
+
+        // Draw ---------------------------------------------------
+        ttcDrawing.draw(c)
+        monitorSpeedometerDrawing.draw(c)
+        warningDrawing.draw(c)
+    }
+    private fun debugInit(){
+
+        blockWidth = view.width - 140
+
+        left = x
+        top = y
+        bottom = y + view.height
+        right = x + view.width
+    }
     private fun drawDebugTexts(c: Canvas) {
         paint.textSize = 34f
         paint.style = Paint.Style.FILL

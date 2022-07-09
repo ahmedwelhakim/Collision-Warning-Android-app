@@ -12,6 +12,7 @@ import kotlin.math.pow
 
 abstract class DrawingObjects(
     blockPosition: Int,
+    private var blocks:Float,
     var context: Context,
     private var canvasWidth: Int,
     private var canvasHeight: Int
@@ -43,7 +44,7 @@ abstract class DrawingObjects(
     }
 
     private fun constructorInit() {
-        blockHeight = ((canvasHeight - lastBlockBottomMargin) / BLOCKS).toInt()
+        blockHeight = ((canvasHeight - lastBlockBottomMargin) / blocks).toInt()
 
 
         val textBound = Rect()

@@ -126,7 +126,9 @@ class Compass(private val activity: Activity) : SensorEventListener {
                  * Write the heading in the BluetoothHashmap send
                  */
                 DataManager.putMapValue("compassHeading",mCurrentMeasuredBearing.toString())
-                States.isDataReceived = true
+                if(States.mode == States.Mode.DEBUG) {
+                    States.isDataReceived = true
+                }
                 DataManager.sendDataWithBluetooth()
             }
         }

@@ -16,6 +16,11 @@
         <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/layout/activity_main.xml" value="0.2" />
         <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/layout/activity_monitor.xml" value="0.25" />
         <entry key="..\:/Users/ahmed/AndroidStudioProjects/WarningSystem/app/src/main/res/layout/list_item.xml" value="0.25" />
+        <entry key="app/src/main/res/drawable/button.xml" value="0.295" />
+        <entry key="app/src/main/res/drawable/listview_bg.xml" value="0.295" />
+        <entry key="app/src/main/res/layout/activity_bluetooth.xml" value="0.109375" />
+        <entry key="app/src/main/res/layout/activity_main.xml" value="0.29528985507246375" />
+        <entry key="app/src/main/res/layout/activity_monitor.xml" value="0.3385416666666667" />
       </map>
     </option>
   </component>

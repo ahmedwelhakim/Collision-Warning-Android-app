@@ -1,33 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools" >
-
+    xmlns:tools="http://schemas.android.com/tools">
     <!-- Request legacy Bluetooth permissions on older devices. -->
-    <uses-permission android:name="android.permission.BLUETOOTH"
+    <uses-permission
+        android:name="android.permission.BLUETOOTH"
         tools:remove="android:maxSdkVersion" />
-    <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADMIN"
         tools:remove="android:maxSdkVersion" />
-
-    <!-- Needed only if your app looks for Bluetooth devices.
+    <!--
+ Needed only if your app looks for Bluetooth devices.
          If your app doesn't use Bluetooth scan results to derive physical
          location information, you can strongly assert that your app
-         doesn't derive physical location. -->
-    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" tools:remove="android:maxSdkVersion"/>
+         doesn't derive physical location.
+    -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_SCAN"
+        tools:remove="android:maxSdkVersion" />
+    <!--
+ Needed only if your app makes the device discoverable to Bluetooth
+         devices.
+    -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_ADVERTISE"
+        tools:remove="android:maxSdkVersion" />
+    <!--
+ Needed only if your app communicates with already-paired Bluetooth
+         devices.
+    -->
+    <uses-permission
+        android:name="android.permission.BLUETOOTH_CONNECT"
+        tools:remove="android:maxSdkVersion" /> <!-- Needed only if your app uses Bluetooth scan results to derive physical location. -->
+    <uses-permission
+        android:name="android.permission.ACCESS_FINE_LOCATION"
+        tools:remove="android:maxSdkVersion" />
 
-    <!-- Needed only if your app makes the device discoverable to Bluetooth
-         devices. -->
-    <uses-permission android:name="android.permission.BLUETOOTH_ADVERTISE" tools:remove="android:maxSdkVersion"/>
+    <uses-feature
+        android:name="android.hardware.bluetooth"
+        android:required="true"
+        tools:remove="android:maxSdkVersion" />
 
-    <!-- Needed only if your app communicates with already-paired Bluetooth
-         devices. -->
-    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" tools:remove="android:maxSdkVersion"/>
-
-    <!-- Needed only if your app uses Bluetooth scan results to derive physical location. -->
-    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" tools:remove="android:maxSdkVersion" />
-
-    <uses-feature android:name="android.hardware.bluetooth" android:required="true" tools:remove="android:maxSdkVersion"/>
-
-    <uses-permission android:name="android.permission.INTERNET" tools:remove="android:maxSdkVersion"/>
+    <uses-permission
+        android:name="android.permission.INTERNET"
+        tools:remove="android:maxSdkVersion" />
 
     <application
         android:allowBackup="true"
@@ -38,15 +53,17 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.WarningSystem"
-        tools:targetApi="31" >
+        tools:targetApi="31">
+        <activity
+            android:name=".activities.BluetoothActivity"
+            android:exported="false"
+            android:screenOrientation="nosensor"/>
         <activity
             android:name=".activities.MonitorActivity"
             android:exported="false"
-            android:screenOrientation="nosensor"
-            />
-
+            android:screenOrientation="nosensor" />
         <activity
-            android:name=".activities.BluetoothActivity"
+            android:name=".activities.MainActivity"
             android:exported="true"
             android:screenOrientation="nosensor">
             <intent-filter>

@@ -6,9 +6,10 @@ import com.example.warningsystem.constants.*
 import kotlin.math.min
 import kotlin.properties.Delegates
 
-class Speedometer(blockPosition: Int, context: Context, canvasWidth: Int, canvasHeight: Int) :
+class Speedometer(blockPosition: Int,blocks:Float, context: Context, canvasWidth: Int, canvasHeight: Int) :
     DrawingObjects(
         blockPosition,
+        blocks,
         context,
         canvasWidth,
         canvasHeight
@@ -40,7 +41,7 @@ class Speedometer(blockPosition: Int, context: Context, canvasWidth: Int, canvas
     init {
 
         textValuePaint.textSize = 150F
-        textValuePaint.getTextBounds("99", 0, "99".length, textBound)
+        textValuePaint.getTextBounds(MAX_SPEED.toInt().toString(), 0, MAX_SPEED.toInt().toString().length, textBound)
 
 
         textValuePaint.isAntiAlias = true
@@ -81,7 +82,7 @@ class Speedometer(blockPosition: Int, context: Context, canvasWidth: Int, canvas
             finalBottom
         )
 
-        textCenterX = left + ((right - left) / 2) - (textBound.width() / 2f) - 20
+        textCenterX = left + ((right - left) / 2) - (textBound.width() / 2f)
         textCenterY = top + ((bottom - top) / 2) + (textBound.height() / 2f) + textTopMargin
 
         textUnitCenterX = left + ((right - left) / 2) - (textUnitBound.width() / 2)
@@ -125,7 +126,7 @@ class Speedometer(blockPosition: Int, context: Context, canvasWidth: Int, canvas
 
 
         c?.drawText(
-            String.format("%02.0f", speed),
+            String.format("%03.0f", speed),
             textCenterX,
             textCenterY,
             textValuePaint

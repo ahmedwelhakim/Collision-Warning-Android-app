@@ -10,8 +10,8 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.properties.Delegates
 
-class TTCMeter (blockPosition: Int, context: Context, canvasWidth: Int, canvasHeight: Int) :
-    DrawingObjects(blockPosition, context, canvasWidth, canvasHeight){
+class TTCMeter (blockPosition: Int,blocks:Float, context: Context, canvasWidth: Int, canvasHeight: Int) :
+    DrawingObjects(blockPosition,blocks, context, canvasWidth, canvasHeight){
     private var titleX: Float = 0F
     private var titleY: Float = 0F
     private val titlePaint: Paint = Paint()
@@ -30,7 +30,6 @@ class TTCMeter (blockPosition: Int, context: Context, canvasWidth: Int, canvasHe
     private var r: Float = 0f
     private var g: Float = 0f
     private var strokePaint: Paint = Paint()
-    private val colorOffset = 10
     var ttc = 10f
 
     init {
@@ -102,7 +101,7 @@ class TTCMeter (blockPosition: Int, context: Context, canvasWidth: Int, canvasHe
 
 
         lineStopX = max(lineStartX + (1 - ttc / MAX_TTC) * lineWidth,lineStartX)
-        linePaint.color =  myRgb(max(r-colorOffset,0f), max(g-colorOffset,0f), 0f)
+        linePaint.color =  myRgb(r, g, 0f)
 
         c?.drawLine(lineStartX, lineStartY, lineStopX, lineStopY, strokePaint)
 

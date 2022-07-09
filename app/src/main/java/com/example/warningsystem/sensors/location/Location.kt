@@ -39,7 +39,9 @@ class Location(private val activity: Activity) {
                 DataManager.putMapValue("gpsHeading",heading.toString())
                 DataManager.putMapValue("speedAccuracy", speedAccuracy.toString())
                 DataManager.putMapValue("gpsAccuracy", lonAccuracy.toString())
-                States.isDataReceived = true
+                if(States.mode != States.Mode.DEMO) {
+                    States.isDataReceived = true
+                }
                 DataManager.sendDataWithBluetooth()
 
             }

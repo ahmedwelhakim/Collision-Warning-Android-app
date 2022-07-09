@@ -22,20 +22,22 @@ object DataManager  {
     init{
         mHashMap["speed"] = "0"
         mHashMap["ttc"] = "100"
+        mHashMap["demoSpeed"] = "0"
+        mHashMap["demoTTC"] = "100"
         mHashMap["speedLimit"] = "100"
     }
 
     fun start(){
-        if(States.isDemo){
+        if(States.mode == States.Mode.DEMO){
             startDemoThread()
-        }else{
+        }else if(States.mode == States.Mode.MONITOR){
             startBluetoothReading()
         }
     }
     fun stop(){
-        if(States.isDemo){
+        if(States.mode == States.Mode.DEMO){
             stopDemoThread()
-        }else{
+        }else if(States.mode == States.Mode.MONITOR){
             stopBluetoothReading()
         }
     }
@@ -145,14 +147,15 @@ object DataManager  {
         override fun run() {
             var speed = 0f
             var ttc = MAX_TTC
-            while (startDemo && States.isDemo){
-                mHashMap["speed"] = speed.toString()
-                mHashMap["ttc"] = ttc.toString()
+            while (startDemo && (States.mode == States.Mode.DEMO || States.mode == States.Mode.DEBUG )){
+                mHashMap["demoSpeed"] = speed.toString()
+                mHashMap["demoTTC"] = ttc.toString()
                 speed += 0.5f
-                ttc -= 0.05f
+                ttc -= 0.03f
                 ttc = if(ttc<0) MAX_TTC else ttc
                 speed =if(speed> MAX_SPEED)0f else speed
-                sleep(50)
+                States.isDataReceived = true
+                sleep(30)
             }
         }
     }

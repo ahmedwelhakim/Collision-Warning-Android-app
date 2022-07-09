@@ -1,10 +1,9 @@
 package com.example.warningsystem.constants
 
 // Drawing Constants
-const val BLOCKS = 3.5f
 const val BLACK_COLOR = 0x70000000
-const val RED_VALUE = 170f
-const val GREEN_VALUE = 170f
+const val RED_VALUE = 120f
+const val GREEN_VALUE = 150f
 const val BG_COLOR = 0x10000000
 const val EMPTY_BAR_COLOR = 0x20000000
 const val MAX_SPEED = 200f

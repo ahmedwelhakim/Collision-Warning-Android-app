@@ -12,8 +12,8 @@ import com.example.warningsystem.constants.*
 import kotlin.math.max
 import kotlin.math.min
 
-class WarningSign(blockPosition: Int, context: Context, canvasWidth: Int, canvasHeight: Int) :
-    DrawingObjects(blockPosition, context, canvasWidth, canvasHeight) {
+class WarningSign(blockPosition: Int,blocks:Float, context: Context, canvasWidth: Int, canvasHeight: Int) :
+    DrawingObjects(blockPosition,blocks, context, canvasWidth, canvasHeight) {
     private val mCustomImage: Drawable
     private var sRed: Float = 0f
     private var sGreen: Float = GREEN_VALUE

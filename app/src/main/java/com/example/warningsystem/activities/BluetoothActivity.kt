@@ -7,10 +7,8 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.LayoutInflater
 import android.view.MotionEvent
 import android.view.View
-import android.view.ViewGroup
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -25,7 +23,7 @@ import kotlin.math.max
 
 
 class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
-    View.OnClickListener,View.OnTouchListener {
+    View.OnClickListener {
     private lateinit var scanButton: AppCompatButton
     private lateinit var lvBtDev: ListView
     private lateinit var lvList: ArrayList<ArrayList<String>>
@@ -43,7 +41,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
     override fun onCreate(savedInstanceState: Bundle?) {
         AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_bluetooth)
 
 
         bluetooth = Bluetooth.getInstance( this@BluetoothActivity)
@@ -75,7 +73,7 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         }
 
         mMainView=findViewById(R.id.main_view)
-        mMainView.setOnTouchListener(this@BluetoothActivity)
+
     }
 
     override fun onItemClick(parent: AdapterView<*>?, view: View?, position: Int, id: Long) {
@@ -236,28 +234,6 @@ class BluetoothActivity : AppCompatActivity(), AdapterView.OnItemClickListener,
         }
     }
 
-
-
-
-
-    private val runnable = Runnable {
-        States.isDemo = States.isDemo.not()
-        startActivity(Intent(this.applicationContext, MonitorActivity::class.java))
-    }
-    override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-        if (event != null) {
-            when (event.action) {
-                MotionEvent.ACTION_DOWN -> {
-                    v?.postDelayed(runnable, 3000)
-                }
-                MotionEvent.ACTION_UP -> {
-                    v?.performClick()
-                    v?.handler?.removeCallbacks(runnable)
-                }
-            }
-        }
-        return true
-    }
 }
 
 
