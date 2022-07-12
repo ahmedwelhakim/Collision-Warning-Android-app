@@ -101,7 +101,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
     private fun speedometerMode(c: Canvas) {
         // update ------------------------------------------------
         States.isDataReceived = false
-        speed = DataManager.getMapValueAsFloat("speed")
+        speed = DataManager.getMapValueAsFloat("speed") * 3.6f;
         speedometer.textValue = speed.toString()
         // Draw -------------------------------------------------
         speedometer.draw(c)
@@ -112,7 +112,7 @@ class CanvasThread(private val view: CanvasView, canvasWidth: Int, canvasHeight:
 
         // update ------------------------------------------------
         States.isDataReceived = false
-        speed = DataManager.getMapValueAsFloat("speed")
+        speed = DataManager.getMapValueAsFloat("speed") * 3.6f;
         monitorSpeedometerDrawing.textValue = speed.toString()
 
         ttc = DataManager.getMapValueAsFloat("ttc")
